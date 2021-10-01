@@ -1,6 +1,7 @@
 package org.sublux.auth;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -9,7 +10,7 @@ public class Team {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Long id;
+    private Integer id;
 
     @Column(name = "nick")
     private String nickname;
@@ -20,14 +21,14 @@ public class Team {
     @Column(name = "description")
     private String description;
 
-    @ManyToMany(fetch = FetchType.LAZY,mappedBy = "teams")
-    private List<User> users;
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "teams")
+    private List<User> users = new ArrayList<>();
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

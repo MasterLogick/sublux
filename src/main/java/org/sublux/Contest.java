@@ -1,8 +1,9 @@
 package org.sublux;
 
-import org.hibernate.annotations.Type;
+import org.sublux.auth.User;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -23,7 +24,10 @@ public class Contest {
     @JoinTable(name = "contest_task_lookup",
             joinColumns = {@JoinColumn(name = "contest_id")},
             inverseJoinColumns = {@JoinColumn(name = "task_id")})
-    private List<Task> tasks;
+    private List<Task> tasks = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private User author;
 
     public void setId(Integer id) {
         this.id = id;
@@ -47,5 +51,21 @@ public class Contest {
 
     public String getDescription() {
         return description;
+    }
+
+    public List<Task> getTasks() {
+        return tasks;
+    }
+
+    public void setTasks(List<Task> tasks) {
+        this.tasks = tasks;
+    }
+
+    public User getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(User author) {
+        this.author = author;
     }
 }

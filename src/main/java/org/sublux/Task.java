@@ -1,8 +1,10 @@
 package org.sublux;
 
+import org.sublux.auth.User;
 import org.sublux.test.Test;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -13,6 +15,9 @@ public class Task {
     @Column(name = "id")
     private Long id;
 
+    @Column(name = "name")
+    private String name;
+
     @Column(name = "description")
     private String description;
 
@@ -20,7 +25,7 @@ public class Task {
     @JoinTable(name = "task_language_lookup",
             joinColumns = {@JoinColumn(name = "task_id")},
             inverseJoinColumns = {@JoinColumn(name = "lang_id")})
-    private List<Language> allowedLanguages;
+    private List<Language> allowedLanguages = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Program inputValidator;
@@ -31,12 +36,23 @@ public class Task {
     @OneToMany(mappedBy = "task", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Test> tests;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    private User author;
+
     public Long getId() {
         return id;
     }
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getDescription() {
@@ -77,5 +93,13 @@ public class Task {
 
     public void setTests(List<Test> tests) {
         this.tests = tests;
+    }
+
+    public User getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(User author) {
+        this.author = author;
     }
 }

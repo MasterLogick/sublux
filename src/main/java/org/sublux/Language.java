@@ -10,13 +10,16 @@ public class Language {
     @Column(name = "id")
     private Integer id;
 
+    @Column(name = "name")
+    private String name;
+
     @Lob
     @Column(name = "build_script")
-    private String buildScript;
+    private byte[] buildScript;
 
     @Lob
     @Column(name = "run_script")
-    private String runScript;
+    private byte[] runScript;
 
     public Integer getId() {
         return id;
@@ -26,19 +29,27 @@ public class Language {
         this.id = id;
     }
 
-    public String getBuildScript() {
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public byte[] getBuildScript() {
         return buildScript;
     }
 
-    public void setBuildScript(String buildScript) {
+    public void setBuildScript(byte[] buildScript) {
         this.buildScript = buildScript;
     }
 
-    public String getRunScript() {
+    public byte[] getRunScript() {
         return runScript;
     }
 
-    public void setRunScript(String runScript) {
+    public void setRunScript(byte[] runScript) {
         this.runScript = runScript;
     }
 }

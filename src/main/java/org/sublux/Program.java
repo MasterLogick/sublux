@@ -20,7 +20,7 @@ public class Program {
 
     @Lob
     @Column(name = "archive")
-    private Byte[] archivedData;
+    private byte[] archivedData;
 
     public Long getId() {
         return id;
@@ -46,11 +46,11 @@ public class Program {
         this.lang = lang;
     }
 
-    public Byte[] getArchivedData() {
+    public byte[] getArchivedData() {
         return archivedData;
     }
 
-    public void setArchivedData(Byte[] archivedData) {
+    public void setArchivedData(byte[] archivedData) {
         this.archivedData = archivedData;
     }
 }
