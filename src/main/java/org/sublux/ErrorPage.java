@@ -14,8 +14,9 @@ public class ErrorPage implements ErrorController {
     @ResponseBody
     public String handleError(HttpServletRequest request) {
         Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
-        return String.format("<html><body><h2>Error Page</h2><div>Status code: <b>%s</b></div><body></html>",
-                statusCode);
+        Exception exception = (Exception) request.getAttribute("javax.servlet.error.exception");
+        return String.format("<html><body><h2>Error Page</h2><div>Status code: <b>%s</b></div><div>%s</div><body></html>",
+                statusCode, exception == null ? "" : exception.getMessage());
     }
 
     public String getErrorPath() {

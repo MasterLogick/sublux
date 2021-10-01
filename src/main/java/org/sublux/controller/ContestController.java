@@ -3,6 +3,7 @@ package org.sublux.controller;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.sublux.Contest;
 import org.sublux.ResponsePage;
@@ -12,6 +13,7 @@ import org.sublux.repository.ContestRepository;
 import org.sublux.repository.TaskRepository;
 import org.sublux.repository.UserRepository;
 
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -35,19 +37,16 @@ public class ContestController {
 
     @PostMapping("/create")
     @ResponseBody
-    public ApiResponse createContest(@RequestParam(name = "name") String name,
-                                     @RequestParam(name = "author_id") Integer userId,
-                                     @RequestParam(name = "task_ids") Long[] taskIds,
-                                     @RequestParam(name = "description", defaultValue = "", required = false) String description) {
+    public String createContest(@Valid ContestForm contestForm, BindingResult bindingResult) {
         Contest contest = new Contest();
-        contest.setName(name);
-        contest.setDescription(description);
-        contest.setAuthor(userRepository.findById(userId).orElse(null));
+        contest.setName(contestForm.getName());
+        contest.setDescription(contestForm.getDescription());
+        contest.setAuthor(userRepository.findById(1).orElse(null));
         ArrayList<Task> tasks = new ArrayList<>();
-        taskRepository.findAllById(Arrays.asList(taskIds)).forEach(tasks::add);
+        taskRepository.findAllById(Arrays.asList(contestForm.getTaskIds())).forEach(tasks::add);
         contest.setTasks(tasks);
         contestRepository.save(contest);
-        return ApiResponse.OK;
+        return "OK";
     }
 
     @GetMapping("/{id}")

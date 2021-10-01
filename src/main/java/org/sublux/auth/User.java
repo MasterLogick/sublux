@@ -12,14 +12,18 @@ public class User {
     @Column(name = "id")
     private Integer id;
 
-    @Column(name = "nick")
-    private String nickname;
+    @Column(name = "username")
+    private String username;
 
-    @Column(name = "name")
-    private String name;
 
-    @Column(name = "surname")
-    private String surname;
+    @Column(name = "password")
+    private String password;
+
+    @Column(name = "first_name")
+    private String firstName;
+
+    @Column(name = "last_name")
+    private String lastName;
 
     @Column(name = "mail")
     private String mail;
@@ -33,6 +37,27 @@ public class User {
             inverseJoinColumns = {@JoinColumn(name = "team_id")})
     private List<Team> teams = new ArrayList<>();
 
+    @OneToMany
+    @JoinTable(name = "user_role_lookup",
+            joinColumns = {@JoinColumn(name = "user_id")},
+            inverseJoinColumns = {@JoinColumn(name = "role_id")})
+    private List<Role> roles;
+
+    public User() {
+    }
+
+    public User(User user) {
+        id = user.getId();
+        username = user.getUsername();
+        password = user.getPassword();
+        firstName = user.getFirstName();
+        lastName = user.getLastName();
+        mail = user.getMail();
+        description = user.getDescription();
+        teams = user.getTeams();
+        roles = user.getRoles();
+    }
+
     public Integer getId() {
         return id;
     }
@@ -41,28 +66,36 @@ public class User {
         this.id = id;
     }
 
-    public String getNickname() {
-        return nickname;
+    public String getUsername() {
+        return username;
     }
 
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
-    public String getName() {
-        return name;
+    public String getPassword() {
+        return password;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
-    public String getSurname() {
-        return surname;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public void setSurname(String surname) {
-        this.surname = surname;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
     public String getMail() {
@@ -87,5 +120,13 @@ public class User {
 
     public void setTeams(List<Team> teams) {
         this.teams = teams;
+    }
+
+    public List<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<Role> roles) {
+        this.roles = roles;
     }
 }
