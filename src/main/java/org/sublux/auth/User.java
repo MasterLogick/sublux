@@ -37,7 +37,7 @@ public class User {
             inverseJoinColumns = {@JoinColumn(name = "team_id")})
     private List<Team> teams = new ArrayList<>();
 
-    @OneToMany
+    @OneToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_role_lookup",
             joinColumns = {@JoinColumn(name = "user_id")},
             inverseJoinColumns = {@JoinColumn(name = "role_id")})

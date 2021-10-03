@@ -1,5 +1,6 @@
-package org.sublux.controller;
+package org.sublux.web.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.sublux.Language;
@@ -35,13 +36,13 @@ public class TaskController {
 
     @PostMapping(path = "/create")
     @ResponseBody
-    public ApiResponse createTask(@RequestParam(name = "name") String name,
-                                  @RequestParam(name = "description", required = false, defaultValue = "") String description,
-                                  @RequestParam(name = "lang_ids") Integer[] langIds,
-                                  @RequestParam(name = "validator_id") Long validatorId,
-                                  @RequestParam(name = "solution_ id", required = false, defaultValue = "-1") Long solutionId,
-                                  @RequestParam(name = "test_ids") Long[] testIds,
-                                  @RequestParam(name = "authorId") Integer authorId) {
+    public ResponseEntity createTask(@RequestParam(name = "name") String name,
+                                     @RequestParam(name = "description", required = false, defaultValue = "") String description,
+                                     @RequestParam(name = "lang_ids") Integer[] langIds,
+                                     @RequestParam(name = "validator_id") Long validatorId,
+                                     @RequestParam(name = "solution_ id", required = false, defaultValue = "-1") Long solutionId,
+                                     @RequestParam(name = "test_ids") Long[] testIds,
+                                     @RequestParam(name = "authorId") Integer authorId) {
         Task task = new Task();
         task.setName(name);
         task.setDescription(description);
@@ -55,6 +56,6 @@ public class TaskController {
         task.setTests(tests);
         task.setAuthor(userRepository.findById(authorId).orElse(null));
         taskRepository.save(task);
-        return ApiResponse.OK;
+        return ResponseEntity.ok().build();
     }
 }

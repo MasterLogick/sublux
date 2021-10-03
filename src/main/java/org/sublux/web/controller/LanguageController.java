@@ -1,5 +1,6 @@
-package org.sublux.controller;
+package org.sublux.web.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,9 +26,9 @@ public class LanguageController {
 
     @PostMapping(path = "/create")
     @ResponseBody
-    public ApiResponse createLang(@RequestParam(name = "name") String name,
-                                  @RequestParam(name = "build_script") MultipartFile buildScript,
-                                  @RequestParam(name = "run_script") MultipartFile runScript) {
+    public ResponseEntity<String> createLang(@RequestParam(name = "name") String name,
+                                             @RequestParam(name = "build_script") MultipartFile buildScript,
+                                             @RequestParam(name = "run_script") MultipartFile runScript) {
         Language language = new Language();
         language.setName(name);
         try {
@@ -35,9 +36,9 @@ public class LanguageController {
             language.setRunScript(runScript.getBytes());
         } catch (IOException e) {
             e.printStackTrace();
-            return new ApiResponse(1, e.toString());
+            return ResponseEntity.badRequest().body(e.toString());
         }
         languageRepository.save(language);
-        return ApiResponse.OK;
+        return ResponseEntity.ok().build();
     }
 }

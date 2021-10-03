@@ -1,21 +1,20 @@
-package org.sublux.controller;
+package org.sublux.web.controller;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.BindingResult;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.sublux.Contest;
 import org.sublux.ResponsePage;
 import org.sublux.Task;
-import org.sublux.form.ContestForm;
 import org.sublux.repository.ContestRepository;
 import org.sublux.repository.TaskRepository;
 import org.sublux.repository.UserRepository;
+import org.sublux.web.form.ContestCreateDTO;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 @Controller
 @RequestMapping("/contest")
@@ -31,22 +30,25 @@ public class ContestController {
     }
 
     @GetMapping("/create")
-    public String getCreateContestForm(ContestForm contestForm) {
+    public String getCreateContestForm(Model model) {
+        model.addAttribute("contestCreateDTO", new ContestCreateDTO());
         return "contest_form";
     }
 
     @PostMapping("/create")
-    @ResponseBody
-    public String createContest(@Valid ContestForm contestForm, BindingResult bindingResult) {
+    public String createContest(@ModelAttribute("contestCreateDTO") @Valid ContestCreateDTO contestCreateDTO/*, BindingResult bindingResult, Model model*/) {
+        /*if (bindingResult.hasErrors()) {
+            return "contest_form";
+        }*/
         Contest contest = new Contest();
-        contest.setName(contestForm.getName());
-        contest.setDescription(contestForm.getDescription());
+        contest.setName(contestCreateDTO.getName());
+        contest.setDescription(contestCreateDTO.getDescription());
         contest.setAuthor(userRepository.findById(1).orElse(null));
         ArrayList<Task> tasks = new ArrayList<>();
-        taskRepository.findAllById(Arrays.asList(contestForm.getTaskIds())).forEach(tasks::add);
+        taskRepository.findAllById(contestCreateDTO.getTaskIds()).forEach(tasks::add);
         contest.setTasks(tasks);
         contestRepository.save(contest);
-        return "OK";
+        return "redirect:/contest/" + contest.getId();
     }
 
     @GetMapping("/{id}")

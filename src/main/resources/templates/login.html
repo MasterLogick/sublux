@@ -11,7 +11,7 @@
 <div th:if="${param.logout}">
     You have been logged out.
 </div>
-<form action="#" method="post" th:action="@{/login}">
+<form action="#" method="post" th:action="@{/user/login}">
     <table>
         <tr>
             <td>Username:</td>
@@ -23,6 +23,7 @@
         </tr>
         <tr>
             <td><input type="submit" value="Log in"></td>
+            <td><a th:href="@{/user/register}">Register</a></td>
         </tr>
     </table>
 </form>

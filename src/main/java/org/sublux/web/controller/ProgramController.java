@@ -1,5 +1,6 @@
-package org.sublux.controller;
+package org.sublux.web.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,9 +33,9 @@ public class ProgramController {
 
     @PostMapping(path = "/upload")
     @ResponseBody
-    public ApiResponse uploadProgram(@RequestParam(name = "user_id") Integer userId,
-                                     @RequestParam(name = "lang_id") Integer langId,
-                                     @RequestParam(name = "files") MultipartFile[] files) {
+    public ResponseEntity<String> uploadProgram(@RequestParam(name = "user_id") Integer userId,
+                                                @RequestParam(name = "lang_id") Integer langId,
+                                                @RequestParam(name = "files") MultipartFile[] files) {
         Program program = new Program();
         program.setAuthor(userRepository.findById(userId).orElse(null));
         program.setLang(languageRepository.findById(langId).orElse(null));
@@ -49,10 +50,10 @@ public class ProgramController {
             zos.close();
         } catch (IOException e) {
             e.printStackTrace();
-            return new ApiResponse(1, e.toString());
+            return ResponseEntity.internalServerError().body(e.toString());
         }
         program.setArchivedData(compressedData.toByteArray());
         programRepository.save(program);
-        return new ApiResponse(files.length, "OK");
+        return ResponseEntity.ok(String.valueOf(files.length));
     }
 }

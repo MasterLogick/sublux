@@ -3,9 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <title>Create contest</title>
+    <style>
+        img {
+            height: 25px;
+            width: auto;
+        }
+
+        .task-row-title {
+            display: block;
+        }
+    </style>
 </head>
 <body>
-<form action="#" method="post" th:action="@{/contest/create}" th:object="${contestForm}">
+<form action="#" method="post" th:action="@{/contest/create}" th:object="${contestCreateDTO}">
     <table>
         <tr>
             <td>Name:</td>
@@ -18,9 +28,31 @@
             <td th:errors="*{description}" th:if="${#fields.hasErrors('description')}">Name error</td>
         </tr>
         <tr>
+            <td class="task-row-title">
+                <div style="padding-top: 10px">Tasks:</div>
+            </td>
+            <td>
+                <table id="tasksTable">
+                    <tr th:each="task:*{taskIds}">
+                        <td><input th:field="*{taskIds}"></td>
+                        <td><img th:src="@{/img/plus.svg}"></td>
+                        <td><img th:src="@{/img/minus.svg}"></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr th:if="${#fields.hasErrors('taskIds')}">
+            <td>
+                <ul>
+                    <li th:each="err: ${#fields.errors('taskIds')}" th:text="${err}">Task selection error</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
             <td><input type="submit" value="submit"></td>
         </tr>
     </table>
+    <script th:src="@{/js/contest_creation.js}"></script>
 </form>
 </body>
 </html>

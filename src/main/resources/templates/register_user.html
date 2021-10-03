@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Create user</title>
+</head>
+<body>
+<form action="#" method="post" th:action="@{/user/register}" th:object="${userDTO}">
+    <table>
+        <tr>
+            <td>
+                <label>Username:</label>
+            </td>
+            <td>
+                <input th:field="*{username}">
+            </td>
+            <td>
+                <p th:errors="*{username}" th:if="${#fields.hasErrors('username')}">Username error</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label>Mail:</label>
+            </td>
+            <td>
+                <input th:field="*{mail}" type="email">
+            </td>
+            <td>
+                <p th:errors="*{mail}" th:if="${#fields.hasErrors('mail')}">Mail error</p>
+            </td>
+            <td>
+                <p th:if="${mailError!=null}" th:text="${mailError}">Mail error</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label>Password:</label>
+            </td>
+            <td>
+                <input th:field="*{password}" type="password">
+            </td>
+            <td>
+                <p th:errors="*{password}" th:if="${#fields.hasErrors('password')}">Password error</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label>Password again:</label>
+            </td>
+            <td>
+                <input th:field="*{passwordRepetition}" type="password">
+            </td>
+            <td>
+                <p th:error="*{passwordRepetition}" th:if="${#fields.hasErrors('passwordRepetition')}">Password
+                    mismatch</p>
+            </td>
+        </tr>
+        <tr th:if="${#fields.hasGlobalErrors()}">
+            <td>
+                <ul>
+                    <li th:each="err:${#fields.globalErrors()}" th:text="${err}">Global error</li>
+                </ul>
+            </td>
+        </tr>
+    </table>
+    <button type="submit">Register</button>
+</form>
+</body>
+</html>

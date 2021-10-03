@@ -1,9 +1,22 @@
-package org.sublux.form;
+package org.sublux.web.form;
 
-public class ContestForm {
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import java.util.List;
+
+public class ContestCreateDTO {
+    @NotEmpty
+    @NotNull
     private String name;
+
+    @NotEmpty
+    @NotNull
     private String description;
-    private Long[] taskIds;
+
+    @NotEmpty
+    @NotNull
+    @UserOwnsTasks
+    private List<Long> taskIds;
 
     public String getName() {
         return name;
@@ -21,11 +34,11 @@ public class ContestForm {
         this.description = description;
     }
 
-    public Long[] getTaskIds() {
+    public List<Long> getTaskIds() {
         return taskIds;
     }
 
-    public void setTaskIds(Long[] taskIds) {
+    public void setTaskIds(List<Long> taskIds) {
         this.taskIds = taskIds;
     }
 }
