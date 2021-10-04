@@ -2,6 +2,7 @@ package org.sublux.web.controller;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import org.sublux.repository.UserRepository;
 import org.sublux.web.form.ContestCreateDTO;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import java.util.ArrayList;
 
 @Controller
@@ -36,10 +38,7 @@ public class ContestController {
     }
 
     @PostMapping("/create")
-    public String createContest(@ModelAttribute("contestCreateDTO") @Valid ContestCreateDTO contestCreateDTO/*, BindingResult bindingResult, Model model*/) {
-        /*if (bindingResult.hasErrors()) {
-            return "contest_form";
-        }*/
+    public ResponseEntity<Object> createContest(@ModelAttribute("contestCreateDTO") @Valid ContestCreateDTO contestCreateDTO) {
         Contest contest = new Contest();
         contest.setName(contestCreateDTO.getName());
         contest.setDescription(contestCreateDTO.getDescription());
@@ -48,7 +47,7 @@ public class ContestController {
         taskRepository.findAllById(contestCreateDTO.getTaskIds()).forEach(tasks::add);
         contest.setTasks(tasks);
         contestRepository.save(contest);
-        return "redirect:/contest/" + contest.getId();
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id}")
@@ -59,9 +58,11 @@ public class ContestController {
 
     @GetMapping("/all")
     @ResponseBody
-    public ResponsePage<Contest> getAllContests(@RequestParam(required = false, defaultValue = "0") Integer page) {
-        Page<Contest> repositoryPage = contestRepository.findAll(PageRequest.of(page, 50));
-        return new ResponsePage<>(repositoryPage.iterator(), repositoryPage.getTotalPages(),
-                repositoryPage.getTotalElements(), repositoryPage.getSize());
+    public ResponseEntity<ResponsePage<Contest>> getAllContests(
+            @RequestParam(required = false, defaultValue = "0", name = "page") @Min(0) @Valid Integer page,
+            @RequestParam(required = false, defaultValue = "0", name = "perPage") @Min(1) @Valid Integer perPage) {
+        Page<Contest> repositoryPage = contestRepository.findAll(PageRequest.of(page, perPage));
+        return ResponseEntity.ok(new ResponsePage<>(repositoryPage.iterator(), repositoryPage.getTotalPages(),
+                repositoryPage.getTotalElements(), repositoryPage.getSize()));
     }
 }

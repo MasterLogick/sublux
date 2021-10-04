@@ -29,6 +29,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         //todo add user password changer
         auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
+        auth.eraseCredentials(true);
     }
 
     @Override
@@ -46,10 +47,9 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/user/register").permitAll()
                 .anyRequest().authenticated();
         http.formLogin()
-                .loginPage("/user/login")
                 .loginProcessingUrl("/user/login")
-                .defaultSuccessUrl("/", true)
-                .failureUrl("/user/login?error")
+                .successHandler(new AuthenticationSuccessHandlerImpl())
+                .failureHandler(new AuthenticationFailureHandlerImpl())
                 .permitAll(true);
         http.logout()
                 .logoutUrl("/user/logout")
@@ -58,5 +58,6 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .deleteCookies("JSESSIONID")
                 .logoutSuccessUrl("/")
                 .permitAll(true);
+        http.exceptionHandling().authenticationEntryPoint(new AuthenticationEntryPointImpl());
     }
 }

@@ -1,13 +1,11 @@
-var path = require('path');
+const path = require('path');
 
 module.exports = {
-    entry: './src/main/js/app.js',
-    devtool: 'sourcemaps',
-    cache: true,
     mode: 'development',
+    entry: './src/main/js/index.js',
     output: {
         path: __dirname,
-        filename: './src/main/resources/static/js/bundle.js'
+        filename: './target/classes/static/js/bundle.js'
     },
     module: {
         rules: [
@@ -20,7 +18,18 @@ module.exports = {
                         presets: ["@babel/preset-env", "@babel/preset-react"]
                     }
                 }]
+            }, {
+                test: /\.css$/,
+                use: [{
+                    loader: 'style-loader',
+                }, {
+                    loader: 'css-loader',
+                    options: {
+                        sourceMap: true,
+                    }
+                }]
             }
         ]
-    }
+    },
+    devtool: 'source-map'
 };
