@@ -1,6 +1,8 @@
 import React from "react";
 
-export {UserView};
+export default function User() {
+    return (<div/>);
+}
 
 function UserView() {
     return (<div>User</div>);

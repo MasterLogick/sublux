@@ -1,11 +1,15 @@
 package org.sublux.auth;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.sublux.serializer.UserShortSerializer;
+
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "user")
+@JsonSerialize(using = UserShortSerializer.class)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -35,17 +35,9 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-                .antMatchers("/error").permitAll()
-                .antMatchers("/js/**").permitAll()
-                .antMatchers("/css/**").permitAll()
-                .antMatchers("/img/**").permitAll()
-                .antMatchers("/contest/all").permitAll()
-                .antMatchers("/contest/create").hasAuthority("ROLE_USER")
-                .antMatchers("/contest/{id}").permitAll()
-                .antMatchers("/task/create").hasAuthority("ROLE_USER")
-                .antMatchers("/task/{id}").permitAll()
-                .antMatchers("/user/register").permitAll()
-                .anyRequest().authenticated();
+                .antMatchers("/api/contest/create").hasAuthority("ROLE_USER")
+                .antMatchers("/api/task/create").hasAuthority("ROLE_USER")
+                .anyRequest().permitAll();
         http.formLogin()
                 .loginProcessingUrl("/user/login")
                 .successHandler(new AuthenticationSuccessHandlerImpl())

@@ -19,7 +19,6 @@ import javax.validation.constraints.Min;
 import java.util.ArrayList;
 
 @Controller
-@RequestMapping("/contest")
 public class ContestController {
     private final ContestRepository contestRepository;
     private final UserRepository userRepository;
@@ -31,13 +30,13 @@ public class ContestController {
         this.taskRepository = taskRepository;
     }
 
-    @GetMapping("/create")
+    @GetMapping("/api/contest/create")
     public String getCreateContestForm(Model model) {
         model.addAttribute("contestCreateDTO", new ContestCreateDTO());
         return "contest_form";
     }
 
-    @PostMapping("/create")
+    @PostMapping("/api/contest/create")
     public ResponseEntity<Object> createContest(@ModelAttribute("contestCreateDTO") @Valid ContestCreateDTO contestCreateDTO) {
         Contest contest = new Contest();
         contest.setName(contestCreateDTO.getName());
@@ -50,17 +49,17 @@ public class ContestController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/api/contest/{id}")
     @ResponseBody
     public Contest getContest(@PathVariable Integer id) {
         return contestRepository.findById(id).orElse(null);
     }
 
-    @GetMapping("/all")
+    @GetMapping("/api/contest/all")
     @ResponseBody
     public ResponseEntity<ResponsePage<Contest>> getAllContests(
             @RequestParam(required = false, defaultValue = "0", name = "page") @Min(0) @Valid Integer page,
-            @RequestParam(required = false, defaultValue = "0", name = "perPage") @Min(1) @Valid Integer perPage) {
+            @RequestParam(required = false, defaultValue = "0", name = "perPage") @Valid @Min(1) Integer perPage) {
         Page<Contest> repositoryPage = contestRepository.findAll(PageRequest.of(page, perPage));
         return ResponseEntity.ok(new ResponsePage<>(repositoryPage.iterator(), repositoryPage.getTotalPages(),
                 repositoryPage.getTotalElements(), repositoryPage.getSize()));

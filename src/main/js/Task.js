@@ -1,6 +1,8 @@
 import React from "react";
 
-export {TaskList};
+export default function Task() {
+    return (<div/>);
+}
 
 function TaskList() {
     return (

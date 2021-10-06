@@ -1,6 +1,8 @@
 package org.sublux;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.sublux.auth.User;
+import org.sublux.serializer.ContestSerializer;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -8,6 +10,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "contest")
+@JsonSerialize(using = ContestSerializer.class)
 public class Contest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
