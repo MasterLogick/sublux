@@ -7,7 +7,7 @@ import org.sublux.repository.TaskRepository;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
-import java.util.List;
+import java.util.Set;
 
 public class TaskAuthorshipValidator implements ConstraintValidator<UserOwnsTasks, Object> {
     @Autowired
@@ -19,11 +19,11 @@ public class TaskAuthorshipValidator implements ConstraintValidator<UserOwnsTask
 
     @Override
     public boolean isValid(Object o, ConstraintValidatorContext constraintValidatorContext) {
-        if (o instanceof List) {
-            List l = (List) o;
-            if (l.size() > 0 && l.get(0) instanceof Long) {
+        if (o instanceof Set) {
+            Set l = (Set) o;
+            if (l.size() > 0 && l.iterator().next() instanceof Long) {
                 UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-                List<Long> tasks = (List<Long>) o;
+                Set<Long> tasks = (Set<Long>) o;
                 if (tasks != null) {
                     return tasks.stream().allMatch(
                             (id) -> taskRepository.findById(id).map(

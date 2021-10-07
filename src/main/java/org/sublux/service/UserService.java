@@ -9,7 +9,8 @@ import org.sublux.repository.UserRepository;
 import org.sublux.web.form.UserRegisterDTO;
 
 import javax.management.relation.RoleNotFoundException;
-import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 @Service
 public class UserService {
@@ -37,8 +38,8 @@ public class UserService {
         user.setLastName("");
         user.setDescription("");
         user.setMail(userRegisterDTO.getMail());
-        user.setTeams(new ArrayList<>());
-        ArrayList<Role> roles = new ArrayList<>();
+        user.setTeams(new HashSet<>());
+        Set<Role> roles = new HashSet<>();
         roles.add(roleRepossitory.findByName("USER").orElseThrow(() -> new RoleNotFoundException("Role USER ton found")));
         user.setRoles(roles);
         userRepository.save(user);

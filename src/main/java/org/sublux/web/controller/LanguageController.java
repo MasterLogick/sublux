@@ -10,7 +10,7 @@ import org.sublux.repository.LanguageRepository;
 import java.io.IOException;
 
 @Controller
-@RequestMapping(path = "/lang")
+@RequestMapping(path = "/api/lang")
 public class LanguageController {
     private final LanguageRepository languageRepository;
 

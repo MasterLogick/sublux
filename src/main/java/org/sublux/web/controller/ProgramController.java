@@ -19,7 +19,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 @Controller
-@RequestMapping(path = "/program")
+@RequestMapping(path = "/api/program")
 public class ProgramController {
     private final ProgramRepository programRepository;
     private final UserRepository userRepository;

@@ -5,8 +5,7 @@ import org.sublux.auth.User;
 import org.sublux.serializer.ContestSerializer;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "contest")
@@ -27,7 +26,7 @@ public class Contest {
     @JoinTable(name = "contest_task_lookup",
             joinColumns = {@JoinColumn(name = "contest_id")},
             inverseJoinColumns = {@JoinColumn(name = "task_id")})
-    private List<Task> tasks = new ArrayList<>();
+    private Set<Task> tasks;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private User author;
@@ -56,11 +55,11 @@ public class Contest {
         return description;
     }
 
-    public List<Task> getTasks() {
+    public Set<Task> getTasks() {
         return tasks;
     }
 
-    public void setTasks(List<Task> tasks) {
+    public void setTasks(Set<Task> tasks) {
         this.tasks = tasks;
     }
 

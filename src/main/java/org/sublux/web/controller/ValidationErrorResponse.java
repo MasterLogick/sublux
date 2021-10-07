@@ -2,13 +2,13 @@ package org.sublux.web.controller;
 
 import org.sublux.web.form.ValidationError;
 
-import java.util.List;
+import java.util.Set;
 
 public class ValidationErrorResponse {
     private final String message = "VALIDATION_ERROR";
-    private List<ValidationError> errorList;
+    private Set<ValidationError> errorList;
 
-    public ValidationErrorResponse(List<ValidationError> errorList) {
+    public ValidationErrorResponse(Set<ValidationError> errorList) {
         this.errorList = errorList;
     }
 
@@ -16,11 +16,11 @@ public class ValidationErrorResponse {
         return message;
     }
 
-    public List<ValidationError> getErrorList() {
+    public Set<ValidationError> getErrorList() {
         return errorList;
     }
 
-    public void setErrorList(List<ValidationError> errorList) {
+    public void setErrorList(Set<ValidationError> errorList) {
         this.errorList = errorList;
     }
 }

@@ -13,5 +13,6 @@ public class UserShortSerializer extends JsonSerializer<User> {
         generator.writeStartObject();
         generator.writeStringField("username", value.getUsername());
         generator.writeNumberField("id", value.getId());
+        generator.writeEndObject();
     }
 }

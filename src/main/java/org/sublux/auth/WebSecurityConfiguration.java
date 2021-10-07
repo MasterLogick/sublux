@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @Configuration
@@ -34,17 +35,22 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+//        http.httpBasic().disable();
+        CookieCsrfTokenRepository repository = new CookieCsrfTokenRepository();
+        repository.setCookieHttpOnly(false);
+        http.csrf().csrfTokenRepository(repository);
         http.authorizeRequests()
                 .antMatchers("/api/contest/create").hasAuthority("ROLE_USER")
                 .antMatchers("/api/task/create").hasAuthority("ROLE_USER")
                 .anyRequest().permitAll();
         http.formLogin()
-                .loginProcessingUrl("/user/login")
+//                .loginPage("/api/user/login")
+                .loginProcessingUrl("/api/user/login")
                 .successHandler(new AuthenticationSuccessHandlerImpl())
                 .failureHandler(new AuthenticationFailureHandlerImpl())
                 .permitAll(true);
         http.logout()
-                .logoutUrl("/user/logout")
+                .logoutUrl("/api/user/logout")
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)
                 .deleteCookies("JSESSIONID")

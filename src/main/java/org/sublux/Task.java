@@ -4,8 +4,7 @@ import org.sublux.auth.User;
 import org.sublux.test.Test;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "task")
@@ -25,7 +24,7 @@ public class Task {
     @JoinTable(name = "task_language_lookup",
             joinColumns = {@JoinColumn(name = "task_id")},
             inverseJoinColumns = {@JoinColumn(name = "lang_id")})
-    private List<Language> allowedLanguages = new ArrayList<>();
+    private Set<Language> allowedLanguages;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Program inputValidator;
@@ -34,7 +33,7 @@ public class Task {
     private Program solution;
 
     @OneToMany(mappedBy = "task", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<Test> tests;
+    private Set<Test> tests;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private User author;
@@ -63,11 +62,11 @@ public class Task {
         this.description = description;
     }
 
-    public List<Language> getAllowedLanguages() {
+    public Set<Language> getAllowedLanguages() {
         return allowedLanguages;
     }
 
-    public void setAllowedLanguages(List<Language> allowedLanguages) {
+    public void setAllowedLanguages(Set<Language> allowedLanguages) {
         this.allowedLanguages = allowedLanguages;
     }
 
@@ -87,11 +86,11 @@ public class Task {
         this.solution = solution;
     }
 
-    public List<Test> getTests() {
+    public Set<Test> getTests() {
         return tests;
     }
 
-    public void setTests(List<Test> tests) {
+    public void setTests(Set<Test> tests) {
         this.tests = tests;
     }
 

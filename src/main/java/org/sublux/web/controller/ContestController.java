@@ -4,7 +4,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.sublux.Contest;
 import org.sublux.ResponsePage;
@@ -16,9 +15,12 @@ import org.sublux.web.form.ContestCreateDTO;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
-import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
 @Controller
+@RequestMapping("/api/contest")
 public class ContestController {
     private final ContestRepository contestRepository;
     private final UserRepository userRepository;
@@ -30,32 +32,27 @@ public class ContestController {
         this.taskRepository = taskRepository;
     }
 
-    @GetMapping("/api/contest/create")
-    public String getCreateContestForm(Model model) {
-        model.addAttribute("contestCreateDTO", new ContestCreateDTO());
-        return "contest_form";
-    }
-
-    @PostMapping("/api/contest/create")
+    @PostMapping("/create")
     public ResponseEntity<Object> createContest(@ModelAttribute("contestCreateDTO") @Valid ContestCreateDTO contestCreateDTO) {
         Contest contest = new Contest();
         contest.setName(contestCreateDTO.getName());
         contest.setDescription(contestCreateDTO.getDescription());
         contest.setAuthor(userRepository.findById(1).orElse(null));
-        ArrayList<Task> tasks = new ArrayList<>();
+        Set<Task> tasks = new HashSet<>();
         taskRepository.findAllById(contestCreateDTO.getTaskIds()).forEach(tasks::add);
         contest.setTasks(tasks);
         contestRepository.save(contest);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/api/contest/{id}")
+    @GetMapping("/{id}")
     @ResponseBody
-    public Contest getContest(@PathVariable Integer id) {
-        return contestRepository.findById(id).orElse(null);
+    public ResponseEntity<Contest> getContest(@PathVariable Integer id) {
+        Optional<Contest> contest = contestRepository.findById(id);
+        return contest.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/api/contest/all")
+    @GetMapping("/all")
     @ResponseBody
     public ResponseEntity<ResponsePage<Contest>> getAllContests(
             @RequestParam(required = false, defaultValue = "0", name = "page") @Min(0) @Valid Integer page,

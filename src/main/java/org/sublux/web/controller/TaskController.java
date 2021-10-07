@@ -8,11 +8,12 @@ import org.sublux.Task;
 import org.sublux.repository.*;
 import org.sublux.test.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 @Controller
-@RequestMapping("/task")
+@RequestMapping("/api/task")
 public class TaskController {
     private final TaskRepository taskRepository;
     private final LanguageRepository languageRepository;
@@ -46,12 +47,12 @@ public class TaskController {
         Task task = new Task();
         task.setName(name);
         task.setDescription(description);
-        ArrayList<Language> languages = new ArrayList();
+        Set<Language> languages = new HashSet<>();
         languageRepository.findAllById(Arrays.asList(langIds)).forEach(languages::add);
         task.setAllowedLanguages(languages);
         task.setInputValidator(programRepository.findById(validatorId).orElse(null));
         task.setSolution(programRepository.findById(solutionId).orElse(null));
-        ArrayList<Test> tests = new ArrayList<>();
+        Set<Test> tests = new HashSet<>();
         testRepository.findAllById(Arrays.asList(testIds)).forEach(tests::add);
         task.setTests(tests);
         task.setAuthor(userRepository.findById(authorId).orElse(null));

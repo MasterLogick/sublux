@@ -1,12 +1,18 @@
 package org.sublux.web.controller;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.sublux.auth.UserDetailsImpl;
+import org.sublux.serializer.UserLong;
 import org.sublux.service.UserAlreadyExistsException;
 import org.sublux.service.UserService;
 import org.sublux.web.form.UserRegisterDTO;
@@ -15,7 +21,7 @@ import javax.management.relation.RoleNotFoundException;
 import javax.validation.Valid;
 
 @Controller
-@RequestMapping(path = "/user")
+@RequestMapping(path = "/api/user")
 public class UserController {
     private final UserService userService;
 
@@ -24,28 +30,25 @@ public class UserController {
     }
 
     @PostMapping(path = "/register")
-    public String registerUser(@ModelAttribute("userDTO") @Valid UserRegisterDTO userRegisterDTO, BindingResult result, Model model) {
-        if (result.hasErrors()) {
-            return "register_user";
+    public ResponseEntity<Object> registerUser(@Valid UserRegisterDTO userRegisterDTO, BindingResult bindingResult) throws BindException {
+        if (bindingResult.hasErrors()) {
+            throw new BindException(bindingResult);
         }
         try {
             userService.registerUser(userRegisterDTO);
         } catch (UserAlreadyExistsException | RoleNotFoundException e) {
-            model.addAttribute("mailError", e.getMessage());
-            return "register_user";
+            bindingResult.addError(new FieldError("mail", "mail", e.getMessage()));
+            throw new BindException(bindingResult);
         }
-        return "redirect:/user/login";
+        return ResponseEntity.ok().build();
     }
 
-    @GetMapping(path = "/register")
-    public String showRegistrationForm(Model model) {
-        UserRegisterDTO userRegisterDTO = new UserRegisterDTO();
-        model.addAttribute("userDTO", userRegisterDTO);
-        return "register_user";
-    }
-
-    @GetMapping("/login")
-    public String showLoginForm() {
-        return "login";
+    @GetMapping(path = "/me")
+    public ResponseEntity<Object> getUser(Authentication authentication) {
+        if (authentication == null || authentication.getPrincipal() instanceof AnonymousAuthenticationToken) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        UserDetailsImpl details = (UserDetailsImpl) authentication.getPrincipal();
+        return ResponseEntity.ok().body(new UserLong(details));
     }
 }

@@ -1,22 +1,20 @@
 import React from "react";
-import {LinkContainer} from "react-router-bootstrap";
-import {Container, Nav, Navbar, NavbarBrand, NavLink} from "react-bootstrap";
+import {Container, Nav, Navbar} from "react-bootstrap";
+import {Link} from "react-router-dom";
 
 export default function Header() {
     return (
         <Navbar collapseOnSelect variant="dark" bg="dark" sticky="top">
             <Container fluid>
-                <LinkContainer to="/">
-                    <NavbarBrand>SubLux</NavbarBrand>
-                </LinkContainer>
+                <Link to="/" className={"navbar-brand"}>SubLux</Link>
                 <Navbar.Toggle/>
                 <Navbar.Collapse>
                     <Nav className="me-auto">
-                        <LinkContainer to="/contest"><NavLink>Contests</NavLink></LinkContainer>
-                        <LinkContainer to="/task"><NavLink>Tasks</NavLink></LinkContainer>
+                        <Link to="/contest" className={"nav-link"}>Contests</Link>
+                        <Link to="/task" className={"nav-link"}>Tasks</Link>
                     </Nav>
                     <Nav>
-                        <LinkContainer to="/user"><NavLink>Profile</NavLink></LinkContainer>
+                        <Link to="/user/profile" className={"nav-link"}>Profile</Link>
                     </Nav>
                 </Navbar.Collapse>
             </Container>

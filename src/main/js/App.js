@@ -1,17 +1,17 @@
 import React from "react";
-import {BrowserRouter as Router, Redirect, Route, Switch} from "react-router-dom";
+import {BrowserRouter, Redirect, Route, Switch} from "react-router-dom";
 import Header from "./Header";
 import Contest from "./Contest";
 import Task from "./Task";
 import User from "./User";
 import Footer from "./Footer";
 
-export default class App extends React.Component {
-    render() {
-        return (
-            <div className="d-flex flex-column min-vh-100">
-                <Router basename={"/"}>
-                    <Header/>
+export default function App() {
+    return (
+        <div className="d-flex flex-column min-vh-100">
+            <BrowserRouter basename={"/"}>
+                <Header/>
+                <div className="pt-3">
                     <Switch>
                         <Route path="/" exact>
                             <Redirect to={"/contest/"}/>
@@ -21,8 +21,8 @@ export default class App extends React.Component {
                         <Route path="/user/" component={User}/>
                         <Route><Redirect to={"/"}/></Route>
                     </Switch>
-                    <Footer/>
-                </Router>
-            </div>);
-    }
+                </div>
+                <Footer/>
+            </BrowserRouter>
+        </div>);
 }

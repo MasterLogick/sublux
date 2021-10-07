@@ -15,7 +15,7 @@ public class ContestSerializer extends JsonSerializer<Contest> {
         generator.writeNumberField("id", value.getId());
         generator.writeStringField("name", value.getName());
         generator.writeStringField("description", value.getDescription());
-        generator.writeObjectField("author", new UserLong(value.getAuthor()));
+        generator.writeObjectField("author", value.getAuthor());
         generator.writeArrayFieldStart("tasks");
         for (Task task : value.getTasks()) {
             generator.writeObject(task);

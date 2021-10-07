@@ -1,4 +1,4 @@
-package org.sublux.web.controller;
+package org.sublux.web.configuration;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;

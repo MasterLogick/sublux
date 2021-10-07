@@ -1,8 +1,10 @@
 package org.sublux.auth;
 
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
+
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "team")
@@ -12,17 +14,15 @@ public class Team {
     @Column(name = "id")
     private Integer id;
 
-    @Column(name = "nick")
-    private String nickname;
-
     @Column(name = "name")
     private String name;
 
     @Column(name = "description")
     private String description;
 
+    @LazyCollection(LazyCollectionOption.FALSE)
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "teams")
-    private List<User> users = new ArrayList<>();
+    private Set<User> users;
 
     public Integer getId() {
         return id;
@@ -30,14 +30,6 @@ public class Team {
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public String getNickname() {
-        return nickname;
-    }
-
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
     }
 
     public String getName() {
@@ -56,11 +48,11 @@ public class Team {
         this.description = description;
     }
 
-    public List<User> getUsers() {
+    public Set<User> getUsers() {
         return users;
     }
 
-    public void setUsers(List<User> users) {
+    public void setUsers(Set<User> users) {
         this.users = users;
     }
 }
