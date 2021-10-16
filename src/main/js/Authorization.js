@@ -1,26 +1,124 @@
-import React from "react";
-import {Container} from "react-bootstrap";
-import {Redirect} from "react-router-dom";
+import React, {useContext, useState} from "react";
 import axios from "axios";
+import {Redirect, useLocation} from "react-router-dom";
+import {useCookies} from "react-cookie";
 
-export {isAuthorized, checkAuthorization, Unauthorized}
-let user = null;
+export {UserProvider, useUser, tryGetCredentials, authUser, RequireAuthorized, isLogged, logoutUser}
 
-function isAuthorized() {
-    return user !== null;
+const UserContext = React.createContext({});
+
+function RequireAuthorized() {
+    let user = useUser();
+    let location = useLocation();
+    if (!isLogged(user)) {
+        return <Redirect to={{
+            pathname: "/user/login",
+            state: {
+                redirect: location
+            }
+        }}/>
+    } else {
+        return null;
+    }
 }
 
-function checkAuthorization() {
-    axios.get("/api/user/me").then((response) => {
-        user = response.data;
+function invalidateUser(user) {
+    user.unsafe_setCookies("user", {});
+    user.unsafe_setUser({})
+}
+
+function loadUser(user, data) {
+    const userData = {
+        id: data.id,
+        username: data.username,
+        first_name: data.first_name,
+        last_name: data.last_name,
+        mail: data.mail,
+        description: data.description
+        //todo mb add teams info
+    };
+    user.unsafe_setCookies("user", userData)
+    user.unsafe_setUser(userData);
+}
+
+function readCookie(name) {
+    name += '=';
+    let ca = document.cookie.split(/;\s*/), i = ca.length - 1;
+    for (; i >= 0; i--)
+        if (!ca[i].indexOf(name))
+            return ca[i].replace(name, '');
+    return "";
+}
+
+function tryGetCredentials(user) {
+    axios.get("/api/user/me").then(resp => {
+        loadUser(user, resp.data);
     }).catch(() => {
-        user = null;
-    })
+        invalidateUser(user);
+    });
 }
 
-function Unauthorized(props) {
-    return (<Container>
-        <h2>You are not authorized</h2>
-        <Redirect to={`/user/login?r=${props.return}`}/>
-    </Container>);
+function authUser(user, username, password) {
+    if (isLogged(user)) {
+        return Promise.reject("Some user is already logged in. Log out first.");
+    }
+    return new Promise((resolve, reject) => {
+        const params = new URLSearchParams();
+        params.append('username', username);
+        params.append('password', password);
+        axios.post("/api/user/login", params, {
+            headers: {
+                "X-XSRF-TOKEN": readCookie("XSRF-TOKEN"),
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+        }).then((response) => {
+            loadUser(user, response.data);
+            resolve();
+        }).catch((err) => {
+            invalidateUser(user);
+            reject(err.response);
+        })
+    });
+}
+
+function logoutUser(user) {
+    if (!isLogged(user)) {
+        return Promise.reject("No user to log out");
+    }
+    return new Promise((resolve, reject) =>
+        axios.post("/api/user/logout", {}, {
+            headers: {
+                "X-XSRF-TOKEN": readCookie("XSRF-TOKEN"),
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+        }).then((response) => {
+            invalidateUser(user);
+            resolve(response.data);
+        }).catch(err => {
+            reject(err);
+        }))
+}
+
+function UserProvider({children}) {
+    const [cookies, setCookies] = useCookies(["user"]);
+    if (cookies.user === undefined) {
+        setCookies("user", {});
+        cookies.user = {};
+    }
+    const [user, setUser] = useState(cookies.user);
+    user.unsafe_setUser = setUser;
+    user.unsafe_setCookies = setCookies;
+    return (
+        <UserContext.Provider value={user}>
+            {children}
+        </UserContext.Provider>
+    )
+}
+
+function useUser() {
+    return useContext(UserContext);
+}
+
+function isLogged(user) {
+    return user?.username !== undefined;
 }

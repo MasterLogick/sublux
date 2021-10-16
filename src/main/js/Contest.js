@@ -1,9 +1,8 @@
-import React from "react";
-import {Button, Col, Container, Form, Nav, Pagination, Row, Table} from "react-bootstrap";
+import React, {useEffect, useState} from "react";
+import {Button, Col, Container, Nav, Pagination, Row, Table} from "react-bootstrap";
 import axios from "axios";
-import {Link, Route, Switch} from "react-router-dom";
+import {Link, Route, Switch, useParams} from "react-router-dom";
 import {TaskShortView} from "./Task";
-import {isAuthorized, Unauthorized} from "./Authorization";
 
 export default function Contest(props) {
     return (
@@ -14,203 +13,188 @@ export default function Contest(props) {
         </Switch>);
 }
 
-class ContestList extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {currentPage: 0, totalPages: 1, perPage: 20, data: []};
-    }
+function ContestList() {
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
+    const [data, setData] = useState([]);
+    const perPage = 20;
 
-    getData() {
+    function fetch() {
         axios.get("/api/contest/all", {
             params: {
-                page: this.state.currentPage,
-                perPage: this.state.perPage
+                page: currentPage,
+                perPage: perPage
             }
         }).then((data) => {
-            this.setState({data: data.data.content, totalPages: data.data.totalPages});
+            setData(data.data.content);
+            setTotalPages(data.data.totalPages);
+        }).catch((err) => {
+            console.log(err);
         });
     }
 
-    componentDidUpdate(prevProps, prevState, snapshot) {
-        if (prevState.currentPage !== this.state.currentPage || prevState.perPage !== this.state.perPage) {
-            this.getData();
-        }
-    }
+    useEffect(fetch, [currentPage]);
 
-    componentDidMount() {
-        this.getData();
-    }
-
-    render() {
-        return (
-            <Container>
-                <Row>
-                    <Col>
-                        <h2>Contest list</h2>
-                    </Col>
-                    <Col className="d-flex justify-content-end">
-                        <Link to={"/contest/create"}>
-                            <Button variant="outline-dark">Create contest</Button>
-                        </Link>
-                    </Col>
-                </Row>
-                <Table responsive bordered hover>
-                    <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Author</th>
+    return (
+        <Container>
+            <Row>
+                <Col>
+                    <h2>Contest list</h2>
+                </Col>
+                <Col className="d-flex justify-content-end">
+                    <Link to={"/contest/create"}>
+                        <Button variant="outline-dark">Create contest</Button>
+                    </Link>
+                </Col>
+            </Row>
+            <Table responsive bordered hover>
+                <thead>
+                <tr>
+                    <th className={"col-9"}>Name</th>
+                    <th className={"col-3"}>Author</th>
+                </tr>
+                </thead>
+                <tbody>
+                {data.map((obj, index) => (
+                    <tr key={index}>
+                        <td><Link to={`/contest/${obj.id}`}>{obj.name}</Link></td>
+                        <td><Link to={`/user/${obj.author.id}`}>{obj.author.username}</Link></td>
                     </tr>
-                    </thead>
-                    <tbody>
-                    {this.state.data.map((obj, index) => (
-                        <tr key={index}>
-                            <td><Link to={`/contest/${obj.id}`}>{obj.name}</Link></td>
-                            <td><Link to={`/user/${obj.author.id}`}>{obj.author.username}</Link></td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </Table>
-                <Nav className="justify-content-end">
-                    <Pagination size={"sm"}>
-                        {/*previous page*/}
-                        <Pagination.Item onClick={() => this.setState(
-                            (state) => ({currentPage: state.currentPage - 1}))}
-                                         activeLabel={""}
-                                         disabled={this.state.currentPage === 0}>
-                            {"<"}
-                        </Pagination.Item>
+                ))}
+                </tbody>
+            </Table>
+            <Nav className="justify-content-end">
+                <Pagination size={"sm"}>
+                    {/*previous page*/}
+                    <Pagination.Item onClick={() => setCurrentPage(currentPage - 1)}
+                                     activeLabel={""}
+                                     disabled={currentPage === 0}>
+                        {"<"}
+                    </Pagination.Item>
 
-                        {this.state.currentPage >= 3 ?
-                            <>
-                                {/*the first page*/}
-                                <Pagination.Item onClick={() => this.setState({currentPage: 0})}
-                                                 activeLabel={""}>
-                                    {1}
-                                </Pagination.Item>
-
-                                {/*ellipsis*/}
-                                <Pagination.Item activeLabel={""}>
-                                    {"..."}
-                                </Pagination.Item>
-                            </> : <></>}
-
-                        {/*page # currentPage - 2*/}
-                        {this.state.currentPage >= 2 ?
-                            <Pagination.Item
-                                onClick={() => this.setState((state) => ({currentPage: state.currentPage - 2}))}
-                                activeLabel={""}>
-                                {this.state.currentPage + 1 - 2}
+                    {currentPage >= 3 ?
+                        <>
+                            {/*the first page*/}
+                            <Pagination.Item onClick={() => setCurrentPage(0)}
+                                             activeLabel={""}>
+                                {1}
                             </Pagination.Item>
-                            : <></>}
 
-                        {/*page # currentPage - 1*/}
-                        {this.state.currentPage >= 1 ?
-                            <Pagination.Item
-                                onClick={() => this.setState((state) => ({currentPage: state.currentPage - 1}))}
-                                activeLabel={""}>
-                                {this.state.currentPage + 1 - 1}
+                            {/*ellipsis*/}
+                            <Pagination.Item activeLabel={""}>
+                                {"..."}
                             </Pagination.Item>
-                            : <></>}
+                        </> : <></>}
 
-                        {/*page # currentPage*/}
-                        <Pagination.Item active
-                                         activeLabel={""}>
-                            {this.state.currentPage + 1}
-                        </Pagination.Item>
-
-                        {/*page # currentPage + 1*/}
-                        {this.state.totalPages >= this.state.currentPage + 1 + 1 ?
-                            <Pagination.Item
-                                onClick={() => this.setState((state) => ({currentPage: state.currentPage + 1}))}
-                                activeLabel={""}>
-                                {this.state.currentPage + 1 + 1}
-                            </Pagination.Item>
-                            : <></>}
-
-                        {/*page # currentPage + 2*/}
-                        {this.state.totalPages >= this.state.currentPage + 1 + 2 ?
-                            <Pagination.Item
-                                onClick={() => this.setState((state) => ({currentPage: state.currentPage + 2}))}
-                                activeLabel={""}>
-                                {this.state.currentPage + 1 + 2}
-                            </Pagination.Item>
-                            : <></>}
-
-                        {this.state.totalPages >= this.state.currentPage + 1 + 3 ?
-                            <>
-                                {/*ellipsis*/}
-                                <Pagination.Item
-                                    activeLabel={""}>
-                                    {"..."}
-                                </Pagination.Item>
-                                {/*the last page*/}
-                                <Pagination.Item
-                                    onClick={() => this.setState((state) => ({currentPage: state.totalPages - 1}))}
-                                    activeLabel={""}>
-                                    {this.state.totalPages}
-                                </Pagination.Item>
-                            </> : <></>}
-
-                        {/*next page*/}
+                    {/*page # currentPage - 2*/}
+                    {currentPage >= 2 ?
                         <Pagination.Item
-                            onClick={() => this.setState((state) => ({currentPage: state.currentPage + 1}))}
-                            activeLabel={""}
-                            disabled={this.state.currentPage + 1 === this.state.totalPages}>
-                            {">"}
+                            onClick={() => setCurrentPage(currentPage - 2)}
+                            activeLabel={""}>
+                            {currentPage + 1 - 2}
                         </Pagination.Item>
-                    </Pagination>
-                </Nav>
-            </Container>
-        );
-    }
+                        : <></>}
+
+                    {/*page # currentPage - 1*/}
+                    {currentPage >= 1 ?
+                        <Pagination.Item
+                            onClick={() => setCurrentPage(currentPage - 1)}
+                            activeLabel={""}>
+                            {currentPage + 1 - 1}
+                        </Pagination.Item>
+                        : <></>}
+
+                    {/*page # currentPage*/}
+                    <Pagination.Item active
+                                     activeLabel={""}>
+                        {currentPage + 1}
+                    </Pagination.Item>
+
+                    {/*page # currentPage + 1*/}
+                    {totalPages >= currentPage + 1 + 1 ?
+                        <Pagination.Item
+                            onClick={() => setCurrentPage(currentPage + 1)}
+                            activeLabel={""}>
+                            {currentPage + 1 + 1}
+                        </Pagination.Item>
+                        : <></>}
+
+                    {/*page # currentPage + 2*/}
+                    {totalPages >= currentPage + 1 + 2 ?
+                        <Pagination.Item
+                            onClick={() => setCurrentPage(currentPage + 2)}
+                            activeLabel={""}>
+                            {currentPage + 1 + 2}
+                        </Pagination.Item>
+                        : <></>}
+
+                    {totalPages >= currentPage + 1 + 3 ?
+                        <>
+                            {/*ellipsis*/}
+                            <Pagination.Item
+                                activeLabel={""}>
+                                {"..."}
+                            </Pagination.Item>
+                            {/*the last page*/}
+                            <Pagination.Item
+                                onClick={() => setCurrentPage(totalPages - 1)}
+                                activeLabel={""}>
+                                {totalPages}
+                            </Pagination.Item>
+                        </> : <></>}
+
+                    {/*next page*/}
+                    <Pagination.Item
+                        onClick={() => setCurrentPage(currentPage + 1)}
+                        activeLabel={""}
+                        disabled={currentPage + 1 === totalPages}>
+                        {">"}
+                    </Pagination.Item>
+                </Pagination>
+            </Nav>
+        </Container>
+    )
+        ;
 }
 
-class ContestInfo extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {data: null, error: ""};
-    }
-
-    componentDidMount() {
-        axios.get(`/api/contest/${this.props.match.params.id}`).then((data) => {
+function ContestInfo() {
+    let {id} = useParams();
+    const [data, setData] = useState({});
+    const [error, setError] = useState(null);
+    useEffect(() => {
+        axios.get(`/api/contest/${id}`).then((data) => {
             console.log(data);
-            this.setState({data: data.data, error: null});
+            setData(data.data);
+            setError(null);
         }).catch((error) => {
-            this.setState({error: error, data: null});
+            setData(null);
+            setError(error);
         });
-    }
+    }, []);
 
-    render() {
-        return (
-            <Container>
-                {(this.state.error !== null) ? this.notFound() : this.contestView()}
-            </Container>
-        );
-    }
-
-    notFound() {
+    function notFound() {
         return (
             <>
-                <h3>Contest {this.props.match.params.id} not found</h3>
+                <h3>Contest {id} not found</h3>
                 <Link to="/contest/">Return back</Link>
             </>
         );
     }
 
-    contestView() {
+    function contestView() {
         return (<>
-            <h2>{this.state.data.name}</h2>
-            <p>{this.state.data.description}</p>
+            <h2>{data.name}</h2>
+            <p>{data.description}</p>
             <Table responsive bordered hover>
                 <thead>
                 <tr>
-                    <td>Task:</td>
+                    <td className={"col-10"}>Task:</td>
                     <td>Points:</td>
                 </tr>
                 </thead>
                 <tbody>{(() => {
-                    if (this.state.data.tasks !== undefined) {
-                        this.state.data.tasks.map((task, index) =>
+                    if (data.tasks !== undefined) {
+                        data.tasks.map((task, index) =>
                             <TaskShortView key={index} name={task.name} id={task.id}/>)
                     } else
                         return (<></>);
@@ -219,23 +203,14 @@ class ContestInfo extends React.Component {
             </Table>
         </>);
     }
+
+    return (
+        <Container>
+            {(error !== null) ? notFound() : contestView()}
+        </Container>
+    );
 }
 
-class ContestCreateForm extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
-    render() {
-        if (!isAuthorized())
-            return (<Unauthorized return={this.props.match.path}/>);
-        else
-            return (
-                <Container>
-                    <Form>
-
-                    </Form>
-                </Container>
-            );
-    }
+function ContestCreateForm() {
+    return null;
 }
