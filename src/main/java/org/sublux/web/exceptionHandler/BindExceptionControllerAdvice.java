@@ -1,4 +1,4 @@
-package org.sublux.web.configuration;
+package org.sublux.web.exceptionHandler;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
@@ -10,7 +10,7 @@ import org.sublux.web.form.ValidationError;
 import java.util.HashSet;
 
 @ControllerAdvice
-public class ValidationErrorHandlingControllerAdvice {
+public class BindExceptionControllerAdvice {
 
     @ExceptionHandler(BindException.class)
     public ResponseEntity<Object> handleBindException(BindException e) {

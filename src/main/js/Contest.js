@@ -1,8 +1,9 @@
 import React, {useEffect, useState} from "react";
-import {Button, Col, Container, Nav, Pagination, Row, Table} from "react-bootstrap";
+import {Button, Col, Container, Form, Nav, Pagination, Row, Table} from "react-bootstrap";
 import axios from "axios";
-import {Link, Route, Switch, useParams} from "react-router-dom";
+import {Link, Route, Switch, useHistory, useParams} from "react-router-dom";
 import {TaskShortView} from "./Task";
+import {RequireAuthorized} from "./Authorization";
 
 export default function Contest(props) {
     return (
@@ -163,7 +164,6 @@ function ContestInfo() {
     const [error, setError] = useState(null);
     useEffect(() => {
         axios.get(`/api/contest/${id}`).then((data) => {
-            console.log(data);
             setData(data.data);
             setError(null);
         }).catch((error) => {
@@ -212,5 +212,138 @@ function ContestInfo() {
 }
 
 function ContestCreateForm() {
-    return null;
+    let name = React.createRef();
+    let description = React.createRef();
+    let addTask = React.createRef();
+    let history = useHistory();
+    const [nameValidationError, setNameValidationError] = useState(null);
+    const [descriptionValidationError, setDescriptionValidationError] = useState(null);
+    const [tasksValidationError, setTasksValidationError] = useState(null);
+    const [selectedTasks, setSelectedTasks] = useState([]);
+    const [unusedTasks, setUnusedTasks] = useState([]);
+    useEffect(() => {
+        function fetch(currentPage, perPage, total) {
+            axios.get("/api/task/getMy", {
+                params: {
+                    page: currentPage,
+                    perPage: perPage
+                }
+            }).then(resp => {
+                setUnusedTasks(unusedTasks.concat(resp.data.content));
+                total = resp.data.totalElements;
+                if (total > (currentPage + 1) * perPage) fetch(currentPage + 1, perPage, total);
+            }).catch(err => alert(err));
+        }
+
+        fetch(0, 20, 1);
+    }, []);
+
+    function onSubmit(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        setNameValidationError(null);
+        setDescriptionValidationError(null);
+        setTasksValidationError(null);
+        /*if (selectedTasks.length === 0) {
+            setTasksValidationError("Select at least one task");
+        }*/
+        axios.post("/api/contest/create", {
+            name: name.current.value,
+            description: description.current.value,
+            taskIds: selectedTasks.map(task => task.id)
+        }).then(() => history.push("/")).catch(err => {
+            for (const error of err.response.data.errorList) {
+                switch (error.objectName) {
+                    case "name":
+                        setNameValidationError(error.message);
+                        break;
+                    case "description":
+                        setDescriptionValidationError(error.message);
+                        break;
+                    case "taskIds":
+                        setTasksValidationError(error.message);
+                        break;
+                }
+            }
+        });
+    }
+
+    return (
+        <Container className={"mb-3"}>
+            <RequireAuthorized/>
+            <h3>Create new contest</h3>
+            <Form noValidate onSubmit={onSubmit}>
+                <Form.Group className="mb-3" controlId="formName">
+                    <Form.Label>Name</Form.Label>
+                    <Form.Control type="text" placeholder="Enter name" name="name" ref={name}
+                                  isInvalid={nameValidationError !== null}/>
+                    <Form.Control.Feedback type={"invalid"}>{nameValidationError}</Form.Control.Feedback>
+                </Form.Group>
+                <Form.Group className="mb-3" controlId="formDescription">
+                    <Form.Label>Description</Form.Label>
+                    <Form.Control as="textarea" placeholder="Enter description" name="description" ref={description}
+                                  isInvalid={descriptionValidationError !== null}/>
+                    <Form.Control.Feedback type={"invalid"}>{descriptionValidationError}</Form.Control.Feedback>
+                </Form.Group>
+                <div className={"mb-3"}>
+                    <Form.Label>Task list</Form.Label>
+                    <hr className={"mb-2 mt-0"}/>
+                    <Table borderless responsive className={"d-flex me-auto"}>
+                        <tbody>
+                        {(() => selectedTasks.map((task, index) => (
+                            <tr key={index} className={"d-flex align-items-center"}>
+                                <td>{`Task ${index + 1}`}</td>
+                                <td>{task.name}</td>
+                                <td>
+                                    <Button variant={"outline-dark"} onClick={() => {
+                                        const task = selectedTasks[index];
+                                        setSelectedTasks(selectedTasks.filter((elem, i) => i !== index));
+                                        setUnusedTasks(unusedTasks.concat(task));
+                                    }}>-</Button>
+                                </td>
+                            </tr>
+                        )))()}
+                        {(() => {
+                            if (unusedTasks.length > 0)
+                                return (
+                                    <tr className={"d-flex align-items-center"}>
+                                        <td>{`Task ${selectedTasks.length + 1}`}</td>
+                                        <td colSpan={2}>
+                                            <Form.Group controlId="formTask">
+                                                <Form.Select placeholder={"Add task"} onChange={() => {
+                                                    const task = unusedTasks[addTask.current.selectedIndex - 1];
+                                                    setUnusedTasks(unusedTasks.filter((elem, index) => index !== addTask.current.selectedIndex - 1));
+                                                    setSelectedTasks(selectedTasks.concat(task));
+                                                    addTask.current.selectedIndex = 0;
+                                                }} ref={addTask} isInvalid={tasksValidationError !== null}>
+                                                    <option>Select task</option>
+                                                    {(() => unusedTasks.map((task, key) => (
+                                                        <option key={key}>{task.name}</option>
+                                                    )))()}
+                                                </Form.Select>
+                                                <Form.Control.Feedback
+                                                    type={"invalid"}>{tasksValidationError}</Form.Control.Feedback>
+                                            </Form.Group>
+                                        </td>
+                                    </tr>
+                                );
+                        })()}
+                        {(() => {
+                            if (unusedTasks.length + selectedTasks.length === 0) return (
+                                <tr>
+                                    <td>
+                                        You do not own any tasks. <Link to={"/task/create"}>Create</Link> one first.
+                                    </td>
+                                </tr>
+                            );
+                        })()}
+                        </tbody>
+                    </Table>
+                </div>
+                <Form.Group>
+                    <Button type="submit" variant="dark">Create</Button>
+                </Form.Group>
+            </Form>
+        </Container>
+    );
 }

@@ -1,13 +1,21 @@
 package org.sublux.web.controller;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.sublux.Language;
+import org.sublux.ResponsePage;
 import org.sublux.Task;
+import org.sublux.auth.UserDetailsImpl;
 import org.sublux.repository.*;
 import org.sublux.test.Test;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -58,5 +66,20 @@ public class TaskController {
         task.setAuthor(userRepository.findById(authorId).orElse(null));
         taskRepository.save(task);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/getMy")
+    @ResponseBody
+    public ResponseEntity<ResponsePage<Task>> listMyTasks(@RequestParam(required = false, defaultValue = "0", name = "page") @Min(0) @Valid Integer page,
+                                                          @RequestParam(required = false, defaultValue = "1", name = "perPage") @Min(1) @Valid Integer perPage,
+                                                          Authentication authentication) {
+        if (authentication != null) {
+            if (authentication.getPrincipal() instanceof UserDetailsImpl) {
+                UserDetailsImpl user = (UserDetailsImpl) authentication.getPrincipal();
+                Page<Task> taskPage = taskRepository.findAllByAuthor(user, PageRequest.of(page, perPage));
+                return ResponseEntity.ok(new ResponsePage<>(taskPage));
+            }
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 }

@@ -16,12 +16,14 @@ public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHa
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         response.setStatus(HttpServletResponse.SC_OK);
-        if (authentication != null && authentication.getPrincipal() instanceof UserDetailsImpl) {
-            response.setHeader("Content-Type", "application/json");
-            UserDetailsImpl details = (UserDetailsImpl) authentication.getPrincipal();
-            JsonGenerator mapper = new ObjectMapper().createGenerator(response.getOutputStream());
-            mapper.writeObject(new UserLong(details));
-            mapper.flush();
+        if (authentication != null) {
+            if (authentication.getPrincipal() instanceof UserDetailsImpl) {
+                response.setHeader("Content-Type", "application/json");
+                UserDetailsImpl details = (UserDetailsImpl) authentication.getPrincipal();
+                JsonGenerator mapper = new ObjectMapper().createGenerator(response.getOutputStream());
+                mapper.writeObject(new UserLong(details));
+                mapper.flush();
+            }
         }
         response.flushBuffer();
     }

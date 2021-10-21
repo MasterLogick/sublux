@@ -3,7 +3,7 @@ import axios from "axios";
 import {Redirect, useLocation} from "react-router-dom";
 import {useCookies} from "react-cookie";
 
-export {UserProvider, useUser, tryGetCredentials, authUser, RequireAuthorized, isLogged, logoutUser}
+export {UserProvider, useUser, tryGetCredentials, authUser, RequireAuthorized, isLogged, logoutUser, registerUser}
 
 const UserContext = React.createContext({});
 
@@ -81,6 +81,26 @@ function authUser(user, username, password) {
     });
 }
 
+function registerUser(username, mail, password, passwordRepetition) {
+    return new Promise((resolve, reject) => {
+        const params = new URLSearchParams();
+        params.append("username", username);
+        params.append("mail", mail);
+        params.append("password", password);
+        params.append("passwordRepetition", passwordRepetition);
+        axios.post("/api/user/register", params, {
+            headers: {
+                "X-XSRF-TOKEN": readCookie("XSRF-TOKEN"),
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+        }).then(response => {
+            resolve(response.data);
+        }).catch(err => {
+            reject(err.response.data.errorList);
+        });
+    });
+}
+
 function logoutUser(user) {
     if (!isLogged(user)) {
         return Promise.reject("No user to log out");
@@ -91,7 +111,7 @@ function logoutUser(user) {
                 "X-XSRF-TOKEN": readCookie("XSRF-TOKEN"),
                 "Content-Type": "application/x-www-form-urlencoded"
             }
-        }).then((response) => {
+        }).then(response => {
             invalidateUser(user);
             resolve(response.data);
         }).catch(err => {

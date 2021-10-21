@@ -1,4 +1,4 @@
-package org.sublux.web.configuration;
+package org.sublux.web.exceptionHandler;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 @ControllerAdvice
-public class NoHandlerFoundControllerAdvice {
+public class NoHandlerFoundExceptionControllerAdvice {
     @Value("classpath:/static/index.html")
     private Resource index;
     private String data = null;

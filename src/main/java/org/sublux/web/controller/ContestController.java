@@ -2,15 +2,17 @@ package org.sublux.web.controller;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.sublux.Contest;
 import org.sublux.ResponsePage;
 import org.sublux.Task;
+import org.sublux.auth.UserDetailsImpl;
 import org.sublux.repository.ContestRepository;
 import org.sublux.repository.TaskRepository;
-import org.sublux.repository.UserRepository;
 import org.sublux.web.form.ContestCreateDTO;
 
 import javax.validation.Valid;
@@ -23,26 +25,31 @@ import java.util.Set;
 @RequestMapping("/api/contest")
 public class ContestController {
     private final ContestRepository contestRepository;
-    private final UserRepository userRepository;
     private final TaskRepository taskRepository;
 
-    public ContestController(ContestRepository contestRepository, UserRepository userRepository, TaskRepository taskRepository) {
+    public ContestController(ContestRepository contestRepository, TaskRepository taskRepository) {
         this.contestRepository = contestRepository;
-        this.userRepository = userRepository;
         this.taskRepository = taskRepository;
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Object> createContest(@ModelAttribute("contestCreateDTO") @Valid ContestCreateDTO contestCreateDTO) {
-        Contest contest = new Contest();
-        contest.setName(contestCreateDTO.getName());
-        contest.setDescription(contestCreateDTO.getDescription());
-        contest.setAuthor(userRepository.findById(1).orElse(null));
-        Set<Task> tasks = new HashSet<>();
-        taskRepository.findAllById(contestCreateDTO.getTaskIds()).forEach(tasks::add);
-        contest.setTasks(tasks);
-        contestRepository.save(contest);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Object> createContest(@RequestBody @Valid ContestCreateDTO contestCreateDTO,
+                                                Authentication authentication) {
+        if (authentication != null) {
+            if (authentication.getPrincipal() instanceof UserDetailsImpl) {
+                UserDetailsImpl user = (UserDetailsImpl) authentication.getPrincipal();
+                Contest contest = new Contest();
+                contest.setName(contestCreateDTO.getName());
+                contest.setDescription(contestCreateDTO.getDescription());
+                contest.setAuthor(user);
+                Set<Task> tasks = new HashSet<>();
+                taskRepository.findAllById(contestCreateDTO.getTaskIds()).forEach(tasks::add);
+                contest.setTasks(tasks);
+                contestRepository.save(contest);
+                return ResponseEntity.ok().build();
+            }
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
     @GetMapping("/{id}")
@@ -56,9 +63,8 @@ public class ContestController {
     @ResponseBody
     public ResponseEntity<ResponsePage<Contest>> getAllContests(
             @RequestParam(required = false, defaultValue = "0", name = "page") @Min(0) @Valid Integer page,
-            @RequestParam(required = false, defaultValue = "0", name = "perPage") @Valid @Min(1) Integer perPage) {
+            @RequestParam(required = false, defaultValue = "1", name = "perPage") @Min(1) @Valid Integer perPage) {
         Page<Contest> repositoryPage = contestRepository.findAll(PageRequest.of(page, perPage));
-        return ResponseEntity.ok(new ResponsePage<>(repositoryPage.iterator(), repositoryPage.getTotalPages(),
-                repositoryPage.getTotalElements(), repositoryPage.getSize()));
+        return ResponseEntity.ok(new ResponsePage<>(repositoryPage));
     }
 }

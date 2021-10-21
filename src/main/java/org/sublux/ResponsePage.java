@@ -1,5 +1,7 @@
 package org.sublux;
 
+import org.springframework.data.domain.Page;
+
 import java.util.Iterator;
 
 public class ResponsePage<T> {
@@ -13,6 +15,10 @@ public class ResponsePage<T> {
         this.totalPages = totalPages;
         this.totalElements = totalElements;
         this.size = size;
+    }
+
+    public ResponsePage(Page<T> page) {
+        this(page.iterator(), page.getTotalPages(), page.getTotalElements(), page.getSize());
     }
 
     public Iterator<T> getContent() {
