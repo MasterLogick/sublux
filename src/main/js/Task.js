@@ -1,22 +1,46 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import axios from "axios";
 import {Badge, Container} from "react-bootstrap";
-import {Link, Route, Switch} from "react-router-dom";
+import {Link, Route, Switch, useParams} from "react-router-dom";
+import {isLogged} from "./Authorization";
 
-export {TaskShortView};
+export {TaskShortView, getMyTasks};
+
 export default function Task(props) {
     return (
         <Switch>
-            <Route to={`${props.match.path}create`}></Route>
-            <Route to={`${props.match.path}:id`}></Route>
+            <Route path={`${props.match.path}create`} exact>
+                <div/>
+            </Route>
+            <Route path={`${props.match.path}:id`} component={TaskFullView}/>
         </Switch>
     );
 }
 
-class TaskFullView extends React.Component {
-    render() {
-        return (<Container></Container>);
-    }
+function TaskFullView() {
+    let {id} = useParams();
+    const [task, setTask] = useState();
+    useEffect(() => {
+        axios.get(`/api/task/${id}`).then(resp => {
+            setTask(resp.data);
+        }).catch(console.log);
+    }, []);
+    if (task === undefined)
+        return null;
+    else
+        return (
+            <Container>
+                <h2>{task.name}</h2>
+                <div className={"text-muted"}>
+                    Author: <Link to={`/user/${task.author.id}`}
+                                  className={"text-secondary"}>{task.author.username}</Link>
+                </div>
+                <hr/>
+                <p>{task.description}</p>
+                <hr/>
+                ---Submit zone---
+            </Container>
+        );
 }
 
 class TaskShortView extends React.Component {
@@ -62,5 +86,36 @@ class TaskShortView extends React.Component {
                 </td>
             </tr>
         );
+    }
+}
+
+function getMyTasks(user) {
+    if (isLogged(user)) {
+        return new Promise((resolve, reject) => {
+                let unusedTasks = [];
+
+                function fetch(currentPage, perPage, total) {
+                    axios.get("/api/task/getMy", {
+                        params: {
+                            page: currentPage,
+                            perPage: perPage
+                        }
+                    }).then(resp => {
+                            unusedTasks = unusedTasks.concat(resp.data.content);
+                            total = resp.data.totalElements;
+                            if (total > (currentPage + 1) * perPage) {
+                                fetch(currentPage + 1, perPage, total);
+                            } else {
+                                resolve(unusedTasks);
+                            }
+                        }
+                    ).catch(reject);
+                }
+
+                fetch(0, 20, 1);
+            }
+        );
+    } else {
+        return Promise.reject("Unauthorized access");
     }
 }

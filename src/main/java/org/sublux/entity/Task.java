@@ -1,7 +1,4 @@
-package org.sublux;
-
-import org.sublux.auth.User;
-import org.sublux.test.Test;
+package org.sublux.entity;
 
 import javax.persistence.*;
 import java.util.Set;
@@ -20,7 +17,7 @@ public class Task {
     @Column(name = "description")
     private String description;
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "task_language_lookup",
             joinColumns = {@JoinColumn(name = "task_id")},
             inverseJoinColumns = {@JoinColumn(name = "lang_id")})
@@ -37,6 +34,31 @@ public class Task {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private User author;
+
+    public Task() {
+    }
+
+    public Task(Long id, String name, String description, Set<Language> allowedLanguages, Program inputValidator, Program solution, Set<Test> tests, User author) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.allowedLanguages = allowedLanguages;
+        this.inputValidator = inputValidator;
+        this.solution = solution;
+        this.tests = tests;
+        this.author = author;
+    }
+
+    public Task(Task task) {
+        id = task.getId();
+        name = task.getName();
+        description = task.getDescription();
+        allowedLanguages = task.getAllowedLanguages();
+        inputValidator = task.getInputValidator();
+        solution = task.getSolution();
+        tests = task.getTests();
+        author = task.getAuthor();
+    }
 
     public Long getId() {
         return id;

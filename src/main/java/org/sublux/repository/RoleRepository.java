@@ -1,7 +1,7 @@
 package org.sublux.repository;
 
 import org.springframework.data.repository.CrudRepository;
-import org.sublux.auth.Role;
+import org.sublux.entity.Role;
 
 import java.util.Optional;
 

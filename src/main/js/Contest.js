@@ -1,41 +1,21 @@
 import React, {useEffect, useState} from "react";
-import {Button, Col, Container, Form, Nav, Pagination, Row, Table} from "react-bootstrap";
+import {Button, Col, Container, Form, Row, Table} from "react-bootstrap";
 import axios from "axios";
 import {Link, Route, Switch, useHistory, useParams} from "react-router-dom";
-import {TaskShortView} from "./Task";
-import {RequireAuthorized} from "./Authorization";
+import {RequireAuthorized, useUser} from "./Authorization";
+import {getMyTasks} from "./Task";
+import PagedList from "./PagedList";
 
 export default function Contest(props) {
     return (
         <Switch>
             <Route path={`${props.match.path}`} exact component={ContestList}/>
-            <Route path={`${props.match.path}create`} component={ContestCreateForm}/>
+            <Route path={`${props.match.path}create`} exact component={ContestCreateForm}/>
             <Route path={`${props.match.path}:id`} component={ContestInfo}/>
         </Switch>);
 }
 
 function ContestList() {
-    const [currentPage, setCurrentPage] = useState(0);
-    const [totalPages, setTotalPages] = useState(1);
-    const [data, setData] = useState([]);
-    const perPage = 20;
-
-    function fetch() {
-        axios.get("/api/contest/all", {
-            params: {
-                page: currentPage,
-                perPage: perPage
-            }
-        }).then((data) => {
-            setData(data.data.content);
-            setTotalPages(data.data.totalPages);
-        }).catch((err) => {
-            console.log(err);
-        });
-    }
-
-    useEffect(fetch, [currentPage]);
-
     return (
         <Container>
             <Row>
@@ -48,114 +28,19 @@ function ContestList() {
                     </Link>
                 </Col>
             </Row>
-            <Table responsive bordered hover>
-                <thead>
-                <tr>
-                    <th className={"col-9"}>Name</th>
-                    <th className={"col-3"}>Author</th>
-                </tr>
-                </thead>
-                <tbody>
-                {data.map((obj, index) => (
-                    <tr key={index}>
-                        <td><Link to={`/contest/${obj.id}`}>{obj.name}</Link></td>
-                        <td><Link to={`/user/${obj.author.id}`}>{obj.author.username}</Link></td>
-                    </tr>
-                ))}
-                </tbody>
-            </Table>
-            <Nav className="justify-content-end">
-                <Pagination size={"sm"}>
-                    {/*previous page*/}
-                    <Pagination.Item onClick={() => setCurrentPage(currentPage - 1)}
-                                     activeLabel={""}
-                                     disabled={currentPage === 0}>
-                        {"<"}
-                    </Pagination.Item>
-
-                    {currentPage >= 3 ?
-                        <>
-                            {/*the first page*/}
-                            <Pagination.Item onClick={() => setCurrentPage(0)}
-                                             activeLabel={""}>
-                                {1}
-                            </Pagination.Item>
-
-                            {/*ellipsis*/}
-                            <Pagination.Item activeLabel={""}>
-                                {"..."}
-                            </Pagination.Item>
-                        </> : <></>}
-
-                    {/*page # currentPage - 2*/}
-                    {currentPage >= 2 ?
-                        <Pagination.Item
-                            onClick={() => setCurrentPage(currentPage - 2)}
-                            activeLabel={""}>
-                            {currentPage + 1 - 2}
-                        </Pagination.Item>
-                        : <></>}
-
-                    {/*page # currentPage - 1*/}
-                    {currentPage >= 1 ?
-                        <Pagination.Item
-                            onClick={() => setCurrentPage(currentPage - 1)}
-                            activeLabel={""}>
-                            {currentPage + 1 - 1}
-                        </Pagination.Item>
-                        : <></>}
-
-                    {/*page # currentPage*/}
-                    <Pagination.Item active
-                                     activeLabel={""}>
-                        {currentPage + 1}
-                    </Pagination.Item>
-
-                    {/*page # currentPage + 1*/}
-                    {totalPages >= currentPage + 1 + 1 ?
-                        <Pagination.Item
-                            onClick={() => setCurrentPage(currentPage + 1)}
-                            activeLabel={""}>
-                            {currentPage + 1 + 1}
-                        </Pagination.Item>
-                        : <></>}
-
-                    {/*page # currentPage + 2*/}
-                    {totalPages >= currentPage + 1 + 2 ?
-                        <Pagination.Item
-                            onClick={() => setCurrentPage(currentPage + 2)}
-                            activeLabel={""}>
-                            {currentPage + 1 + 2}
-                        </Pagination.Item>
-                        : <></>}
-
-                    {totalPages >= currentPage + 1 + 3 ?
-                        <>
-                            {/*ellipsis*/}
-                            <Pagination.Item
-                                activeLabel={""}>
-                                {"..."}
-                            </Pagination.Item>
-                            {/*the last page*/}
-                            <Pagination.Item
-                                onClick={() => setCurrentPage(totalPages - 1)}
-                                activeLabel={""}>
-                                {totalPages}
-                            </Pagination.Item>
-                        </> : <></>}
-
-                    {/*next page*/}
-                    <Pagination.Item
-                        onClick={() => setCurrentPage(currentPage + 1)}
-                        activeLabel={""}
-                        disabled={currentPage + 1 === totalPages}>
-                        {">"}
-                    </Pagination.Item>
-                </Pagination>
-            </Nav>
+            <PagedList url={"/api/contest/all"}
+                       header={<tr>
+                           <th className={"col-9"}>Name</th>
+                           <th className={"col-3"}>Author</th>
+                       </tr>}
+                       objectMapper={obj => (
+                           <>
+                               <td><Link to={`/contest/${obj.id}`}>{obj.name}</Link></td>
+                               <td><Link to={`/user/${obj.author.id}`}>{obj.author.username}</Link></td>
+                           </>
+                       )}/>
         </Container>
-    )
-        ;
+    );
 }
 
 function ContestInfo() {
@@ -165,6 +50,7 @@ function ContestInfo() {
     useEffect(() => {
         axios.get(`/api/contest/${id}`).then((data) => {
             setData(data.data);
+            console.log(data.data.tasks)
             setError(null);
         }).catch((error) => {
             setData(null);
@@ -194,8 +80,11 @@ function ContestInfo() {
                 </thead>
                 <tbody>{(() => {
                     if (data.tasks !== undefined) {
-                        data.tasks.map((task, index) =>
-                            <TaskShortView key={index} name={task.name} id={task.id}/>)
+                        return data.tasks.map((task, index) =>
+                            <tr key={index}>
+                                <td><Link to={`/task/${task.id}`}>{task.name}</Link></td>
+                                <td>0/0</td>
+                            </tr>)
                     } else
                         return (<></>);
                 })()}
@@ -216,26 +105,14 @@ function ContestCreateForm() {
     let description = React.createRef();
     let addTask = React.createRef();
     let history = useHistory();
+    let user = useUser();
     const [nameValidationError, setNameValidationError] = useState(null);
     const [descriptionValidationError, setDescriptionValidationError] = useState(null);
     const [tasksValidationError, setTasksValidationError] = useState(null);
     const [selectedTasks, setSelectedTasks] = useState([]);
     const [unusedTasks, setUnusedTasks] = useState([]);
     useEffect(() => {
-        function fetch(currentPage, perPage, total) {
-            axios.get("/api/task/getMy", {
-                params: {
-                    page: currentPage,
-                    perPage: perPage
-                }
-            }).then(resp => {
-                setUnusedTasks(unusedTasks.concat(resp.data.content));
-                total = resp.data.totalElements;
-                if (total > (currentPage + 1) * perPage) fetch(currentPage + 1, perPage, total);
-            }).catch(err => alert(err));
-        }
-
-        fetch(0, 20, 1);
+        getMyTasks(user).then(setUnusedTasks);
     }, []);
 
     function onSubmit(event) {
@@ -244,9 +121,9 @@ function ContestCreateForm() {
         setNameValidationError(null);
         setDescriptionValidationError(null);
         setTasksValidationError(null);
-        /*if (selectedTasks.length === 0) {
+        if (selectedTasks.length === 0) {
             setTasksValidationError("Select at least one task");
-        }*/
+        }
         axios.post("/api/contest/create", {
             name: name.current.value,
             description: description.current.value,
@@ -269,7 +146,7 @@ function ContestCreateForm() {
     }
 
     return (
-        <Container className={"mb-3"}>
+        <Container>
             <RequireAuthorized/>
             <h3>Create new contest</h3>
             <Form noValidate onSubmit={onSubmit}>

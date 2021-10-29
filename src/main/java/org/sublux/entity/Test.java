@@ -1,6 +1,6 @@
-package org.sublux.test;
+package org.sublux.entity;
 
-import org.sublux.Task;
+import org.sublux.test.InputOutputType;
 
 import javax.persistence.*;
 

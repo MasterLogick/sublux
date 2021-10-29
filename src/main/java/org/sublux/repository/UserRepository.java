@@ -1,7 +1,7 @@
 package org.sublux.repository;
 
 import org.springframework.data.repository.PagingAndSortingRepository;
-import org.sublux.auth.User;
+import org.sublux.entity.User;
 
 import java.util.Optional;
 

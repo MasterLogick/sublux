@@ -7,12 +7,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.sublux.Language;
 import org.sublux.ResponsePage;
-import org.sublux.Task;
 import org.sublux.auth.UserDetailsImpl;
+import org.sublux.entity.Language;
+import org.sublux.entity.Task;
+import org.sublux.entity.Test;
 import org.sublux.repository.*;
-import org.sublux.test.Test;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;

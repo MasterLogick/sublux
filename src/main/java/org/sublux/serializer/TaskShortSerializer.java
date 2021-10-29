@@ -3,16 +3,17 @@ package org.sublux.serializer;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import org.sublux.entity.User;
 
 import java.io.IOException;
 
-public class UserShortSerializer extends JsonSerializer<User> {
+public class TaskShortSerializer extends JsonSerializer<TaskShort> {
+
     @Override
-    public void serialize(User value, JsonGenerator generator, SerializerProvider serializers) throws IOException {
+    public void serialize(TaskShort value, JsonGenerator generator, SerializerProvider serializers) throws IOException {
         generator.writeStartObject();
-        generator.writeStringField("username", value.getUsername());
         generator.writeNumberField("id", value.getId());
+        generator.writeStringField("name", value.getName());
+        generator.writeObjectField("author", value.getAuthor());
         generator.writeEndObject();
     }
 }

@@ -1,4 +1,4 @@
-package org.sublux.auth;
+package org.sublux.entity;
 
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;

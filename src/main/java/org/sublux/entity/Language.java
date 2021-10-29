@@ -1,9 +1,13 @@
-package org.sublux;
+package org.sublux.entity;
+
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.sublux.serializer.LanguageSerializer;
 
 import javax.persistence.*;
 
 @Entity
 @Table(name = "language")
+@JsonSerialize(using = LanguageSerializer.class)
 public class Language {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,12 +18,28 @@ public class Language {
     private String name;
 
     @Lob
+    @Column(name = "docker_tar")
+    private byte[] dockerTar;
+
+    @Lob
     @Column(name = "build_script")
     private byte[] buildScript;
 
     @Lob
     @Column(name = "run_script")
     private byte[] runScript;
+
+
+    public Language() {
+    }
+
+    public Language(Language language) {
+        id = language.getId();
+        name = language.getName();
+        dockerTar = language.dockerTar;
+        buildScript = language.buildScript;
+        runScript = language.getRunScript();
+    }
 
     public Integer getId() {
         return id;
@@ -35,6 +55,14 @@ public class Language {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public byte[] getDockerTar() {
+        return dockerTar;
+    }
+
+    public void setDockerTar(byte[] dockerTar) {
+        this.dockerTar = dockerTar;
     }
 
     public byte[] getBuildScript() {

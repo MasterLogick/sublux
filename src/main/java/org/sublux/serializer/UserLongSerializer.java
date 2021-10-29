@@ -3,7 +3,7 @@ package org.sublux.serializer;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import org.sublux.auth.Team;
+import org.sublux.entity.Team;
 
 import java.io.IOException;
 

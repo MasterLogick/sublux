@@ -2,8 +2,8 @@ package org.sublux.service;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.sublux.auth.Role;
-import org.sublux.auth.User;
+import org.sublux.entity.Role;
+import org.sublux.entity.User;
 import org.sublux.repository.RoleRepository;
 import org.sublux.repository.UserRepository;
 import org.sublux.web.form.UserRegisterDTO;

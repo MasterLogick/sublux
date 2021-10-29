@@ -1,4 +1,4 @@
-package org.sublux.auth;
+package org.sublux.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.hibernate.annotations.LazyCollection;

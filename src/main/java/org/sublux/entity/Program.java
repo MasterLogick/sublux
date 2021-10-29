@@ -1,6 +1,4 @@
-package org.sublux;
-
-import org.sublux.auth.User;
+package org.sublux.entity;
 
 import javax.persistence.*;
 
