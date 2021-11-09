@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.sublux.serializer.UserLong;
+import org.sublux.serialization.UserLong;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;

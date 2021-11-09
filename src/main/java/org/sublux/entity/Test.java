@@ -12,23 +12,28 @@ public class Test {
     @Column(name = "id")
     private Long id;
 
+    @Column(name = "points")
+    private int points;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "input_provider_type")
     private InputOutputType inputProviderType;
 
-    @Column(name = "input_provider_args_id")
-    private Long inputProviderArguments;
+    @Lob
+    @Column(name = "input")
+    private byte[] input;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "output_consumer_type")
     private InputOutputType outputConsumerTypeId;
 
-    @Column(name = "output_consumer_args_id")
-    private Long outputConsumerArgumentsId;
+    @Lob
+    @Column(name = "output")
+    private byte[] output;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "task_id", nullable = false)
-    private Task task;
+    @JoinColumn(name = "cluster_id", nullable = false)
+    private TestCluster testCluster;
 
     public Long getId() {
         return id;
@@ -36,6 +41,14 @@ public class Test {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public int getPoints() {
+        return points;
+    }
+
+    public void setPoints(int points) {
+        this.points = points;
     }
 
     public InputOutputType getInputProviderType() {
@@ -46,12 +59,12 @@ public class Test {
         this.inputProviderType = inputProviderType;
     }
 
-    public Long getInputProviderArguments() {
-        return inputProviderArguments;
+    public byte[] getInput() {
+        return input;
     }
 
-    public void setInputProviderArguments(Long inputProviderArguments) {
-        this.inputProviderArguments = inputProviderArguments;
+    public void setInput(byte[] input) {
+        this.input = input;
     }
 
     public InputOutputType getOutputConsumerTypeId() {
@@ -62,19 +75,19 @@ public class Test {
         this.outputConsumerTypeId = outputConsumerTypeId;
     }
 
-    public Long getOutputConsumerArgumentsId() {
-        return outputConsumerArgumentsId;
+    public byte[] getOutput() {
+        return output;
     }
 
-    public void setOutputConsumerArgumentsId(Long outputConsumerArgumentsId) {
-        this.outputConsumerArgumentsId = outputConsumerArgumentsId;
+    public void setOutput(byte[] output) {
+        this.output = output;
     }
 
-    public Task getTask() {
-        return task;
+    public TestCluster getTestCluster() {
+        return testCluster;
     }
 
-    public void setTask(Task task) {
-        this.task = task;
+    public void setTestCluster(TestCluster testCluster) {
+        this.testCluster = testCluster;
     }
 }

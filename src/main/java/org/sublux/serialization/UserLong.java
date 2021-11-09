@@ -1,4 +1,4 @@
-package org.sublux.serializer;
+package org.sublux.serialization;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.sublux.entity.User;

@@ -6,19 +6,23 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 import org.sublux.ResponsePage;
 import org.sublux.auth.UserDetailsImpl;
-import org.sublux.entity.Language;
-import org.sublux.entity.Task;
-import org.sublux.entity.Test;
+import org.sublux.entity.*;
 import org.sublux.repository.*;
+import org.sublux.test.InputOutputType;
+import org.sublux.web.form.TaskCreateDTO;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
-import java.util.Arrays;
+import java.io.IOException;
 import java.util.HashSet;
-import java.util.Set;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/api/task")
@@ -45,34 +49,90 @@ public class TaskController {
 
     @PostMapping(path = "/create")
     @ResponseBody
-    public ResponseEntity createTask(@RequestParam(name = "name") String name,
-                                     @RequestParam(name = "description", required = false, defaultValue = "") String description,
-                                     @RequestParam(name = "lang_ids") Integer[] langIds,
-                                     @RequestParam(name = "validator_id") Long validatorId,
-                                     @RequestParam(name = "solution_ id", required = false, defaultValue = "-1") Long solutionId,
-                                     @RequestParam(name = "test_ids") Long[] testIds,
-                                     @RequestParam(name = "authorId") Integer authorId) {
-        Task task = new Task();
-        task.setName(name);
-        task.setDescription(description);
-        Set<Language> languages = new HashSet<>();
-        languageRepository.findAllById(Arrays.asList(langIds)).forEach(languages::add);
-        task.setAllowedLanguages(languages);
-        task.setInputValidator(programRepository.findById(validatorId).orElse(null));
-        task.setSolution(programRepository.findById(solutionId).orElse(null));
-        Set<Test> tests = new HashSet<>();
-        testRepository.findAllById(Arrays.asList(testIds)).forEach(tests::add);
-        task.setTests(tests);
-        task.setAuthor(userRepository.findById(authorId).orElse(null));
-        taskRepository.save(task);
-        return ResponseEntity.ok().build();
+    public ResponseEntity createTask(@RequestBody @Valid TaskCreateDTO taskCreateDTO,
+                                     BindingResult bindingResult,
+                                     Authentication authentication) throws BindException {
+        if (bindingResult.hasErrors()) {
+            throw new BindException(bindingResult);
+        }
+        if (authentication != null) {
+            if (authentication.getPrincipal() instanceof UserDetailsImpl) {
+                UserDetailsImpl user = (UserDetailsImpl) authentication.getPrincipal();
+                Task task = new Task();
+                task.setName(taskCreateDTO.getName());
+                task.setDescription(taskCreateDTO.getDescription());
+                task.setAuthor(user);
+                HashSet<Language> languages = new HashSet<>();
+                for (Language language : languageRepository.findAllById(taskCreateDTO.getAllowedLanguages())) {
+                    languages.add(language);
+                }
+                if (languages.size() != taskCreateDTO.getAllowedLanguages().size()) {
+                    bindingResult.addError(new ObjectError("allowedLanguages", "Unknown languages"));
+                    throw new BindException(bindingResult);
+                }
+                task.setAllowedLanguages(languages);
+                Program validator = new Program();
+                validator.setAuthor(user);
+                Optional<Language> validatorLanguage = languageRepository.findById(taskCreateDTO.getValidator().getLanguage());
+                if (validatorLanguage.isPresent()) {
+                    validator.setLang(validatorLanguage.get());
+                } else {
+                    bindingResult.addError(new ObjectError("validator", "Invalid language"));
+                    throw new BindException(bindingResult);
+                }
+                try {
+                    validator.setArchivedData(taskCreateDTO.getValidator());
+                } catch (IOException e) {
+                    bindingResult.addError(new ObjectError("validator", e.getMessage()));
+                    throw new BindException(bindingResult);
+                }
+                task.setInputValidator(validator);
+                Program solution = new Program();
+                solution.setAuthor(user);
+                Optional<Language> solutionLanguage = languageRepository.findById(taskCreateDTO.getSolution().getLanguage());
+                if (solutionLanguage.isPresent()) {
+                    solution.setLang(solutionLanguage.get());
+                } else {
+                    bindingResult.addError(new ObjectError("solution", "Invalid language"));
+                    throw new BindException(bindingResult);
+                }
+                try {
+                    solution.setArchivedData(taskCreateDTO.getSolution());
+                } catch (IOException e) {
+                    bindingResult.addError(new ObjectError("solution", e.getMessage()));
+                    throw new BindException(bindingResult);
+                }
+                task.setSolution(solution);
+                task.setTestClusters(
+                        taskCreateDTO.getTests().stream().map((cluster -> {
+                            TestCluster c = new TestCluster();
+                            c.setName(cluster.getName());
+                            c.setTask(task);
+                            c.setTests(
+                                    cluster.getTests().stream().map(test -> {
+                                        Test t = new Test();
+                                        t.setInput(test.getInput());
+                                        t.setOutput(test.getOutput());
+                                        t.setPoints(test.getPoints());
+                                        t.setInputProviderType(InputOutputType.PLAIN_TEXT);
+                                        t.setOutputConsumerTypeId(InputOutputType.PLAIN_TEXT);
+                                        t.setTestCluster(c);
+                                        return t;
+                                    }).collect(Collectors.toSet()));
+                            return c;
+                        })).collect(Collectors.toSet()));
+                taskRepository.save(task);
+                return ResponseEntity.ok().build();
+            }
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
     @GetMapping("/getMy")
     @ResponseBody
-    public ResponseEntity<ResponsePage<Task>> listMyTasks(@RequestParam(required = false, defaultValue = "0", name = "page") @Min(0) @Valid Integer page,
-                                                          @RequestParam(required = false, defaultValue = "1", name = "perPage") @Min(1) @Valid Integer perPage,
-                                                          Authentication authentication) {
+    public ResponseEntity<ResponsePage<Task>> getMyTasks(@RequestParam(required = false, defaultValue = "0", name = "page") @Min(0) @Valid Integer page,
+                                                         @RequestParam(required = false, defaultValue = "1", name = "perPage") @Min(1) @Valid Integer perPage,
+                                                         Authentication authentication) {
         if (authentication != null) {
             if (authentication.getPrincipal() instanceof UserDetailsImpl) {
                 UserDetailsImpl user = (UserDetailsImpl) authentication.getPrincipal();

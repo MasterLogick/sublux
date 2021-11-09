@@ -1,4 +1,4 @@
-package org.sublux.serializer;
+package org.sublux.serialization;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -18,7 +18,7 @@ public class ContestSerializer extends JsonSerializer<Contest> {
         generator.writeObjectField("author", value.getAuthor());
         generator.writeArrayFieldStart("tasks");
         for (Task task : value.getTasks()) {
-            generator.writeObject(new TaskShort(task));
+            generator.writeObject(task);
         }
         generator.writeEndArray();
         generator.writeEndObject();

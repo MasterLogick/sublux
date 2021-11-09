@@ -1,10 +1,12 @@
 import React, {useEffect, useState} from "react";
 import {Link, Route, Switch, useHistory, useParams} from "react-router-dom";
-import {Button, Col, Container, Form, Row} from "react-bootstrap";
+import {Button, CloseButton, Col, Container, Dropdown, Form, Row, Stack} from "react-bootstrap";
 import {RequireAuthorized} from "./Authorization";
 import axios from "axios";
 import PagedList from "./PagedList";
+import DropdownMenu from "react-bootstrap/DropdownMenu";
 
+export {LanguageSelector};
 export default function Language(props) {
     return (
         <Switch>
@@ -53,7 +55,7 @@ function LanguageCreateForm() {
         form.append("dockerTar", dockerTar.current.files[0]);
         form.append("buildScript", buildScript.current.files[0]);
         form.append("runScript", runScript.current.files[0]);
-        axios.post("/api/language/create", form).then(() => history.push("/")).catch(err => {
+        axios.post("/api/language/create", form).then(() => history.push("/language")).catch(err => {
             for (const error of err.response.data.errorList) {
                 switch (error.objectName) {
                     case "name":
@@ -162,5 +164,74 @@ function LanguageInfo() {
             <h4>Run script</h4>
             <Form.Control as={"textarea"} readOnly value={language.runScript} style={{height: "450px"}}/>
         </Container>
+    );
+}
+
+function FilteredLanguageList(props) {
+    const [languages, setLanguages] = useState([]);
+    const [filter, setFilter] = useState("");
+    props.filterProxy.m = setFilter;
+    const selected = props?.selected || [];
+    const multiple = props?.multiple || false;
+    const setSelected = props.setSelected;
+
+    useEffect(() => {
+        axios.get("/api/language/search", {
+            params: {
+                filter: filter,
+                perPage: 20
+            }
+        }).then(resp => setLanguages(resp.data.content));
+    }, [filter]);
+    return (
+        <>
+            {languages.filter(lang => !selected.map(l => l.name).includes(lang.name)).map((lang, key) => (
+                <Dropdown.Item key={key} onClick={() => {
+                    if (multiple)
+                        setSelected(selected.concat(lang));
+                    else
+                        setSelected([lang]);
+                }}>{lang.name}</Dropdown.Item>
+            ))}
+        </>
+    );
+}
+
+function LanguageSelector(props) {
+    let filterProxy = {m: null};
+    const [selected, setSelected] = useState(props?.value || []);
+    const multiple = props?.multiple || false;
+    const onSelect = props.onSelect;
+
+    const Toggle = React.forwardRef(({onClick}, ref) => {
+        return (
+            <Stack direction="horizontal" gap={2}>
+                {selected.map((lang, key) => (
+                    <div className={"px-1 border border-1 border-dark rounded-3 d-flex align-items-center"}
+                         style={{whiteSpace: "nowrap"}}>
+                        {lang.name} <CloseButton onClick={() => setSelected(selected.filter(it => it != lang))}/>
+                    </div>
+                ))}
+                <input className={"form-select"} type="text" ref={ref} onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onClick(e);
+                }} onChange={e => {
+                    filterProxy.m(e.target.value);
+                }} placeholder="Select language" disabled={!multiple && selected.length > 0}/>
+            </Stack>
+        );
+    });
+
+    return (
+        <Dropdown>
+            <Dropdown.Toggle as={Toggle} id="language-toggle"/>
+            <DropdownMenu id="language-dropdown">
+                <FilteredLanguageList filterProxy={filterProxy} setSelected={(arr) => {
+                    setSelected(arr);
+                    onSelect(arr);
+                }} selected={selected} multiple={multiple}/>
+            </DropdownMenu>
+        </Dropdown>
     );
 }

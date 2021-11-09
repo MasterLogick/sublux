@@ -1,18 +1,18 @@
-package org.sublux.serializer;
+package org.sublux.serialization;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import org.sublux.entity.Language;
+import org.sublux.entity.User;
 
 import java.io.IOException;
 
-public class LanguageSerializer extends JsonSerializer<Language> {
+public class UserShortSerializer extends JsonSerializer<User> {
     @Override
-    public void serialize(Language value, JsonGenerator generator, SerializerProvider serializers) throws IOException {
+    public void serialize(User value, JsonGenerator generator, SerializerProvider serializers) throws IOException {
         generator.writeStartObject();
+        generator.writeStringField("username", value.getUsername());
         generator.writeNumberField("id", value.getId());
-        generator.writeStringField("name", value.getName());
         generator.writeEndObject();
     }
 }

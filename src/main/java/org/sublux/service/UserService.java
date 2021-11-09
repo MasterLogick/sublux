@@ -40,7 +40,7 @@ public class UserService {
         user.setMail(userRegisterDTO.getMail());
         user.setTeams(new HashSet<>());
         Set<Role> roles = new HashSet<>();
-        roles.add(roleRepossitory.findByName("USER").orElseThrow(() -> new RoleNotFoundException("Role USER ton found")));
+        roles.add(roleRepossitory.findByName("USER").orElseThrow(() -> new RoleNotFoundException("Role USER not found")));
         user.setRoles(roles);
         userRepository.save(user);
     }

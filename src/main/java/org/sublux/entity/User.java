@@ -3,7 +3,7 @@ package org.sublux.entity;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
-import org.sublux.serializer.UserShortSerializer;
+import org.sublux.serialization.UserShortSerializer;
 
 import javax.persistence.*;
 import java.util.Set;

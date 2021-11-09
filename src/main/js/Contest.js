@@ -50,7 +50,6 @@ function ContestInfo() {
     useEffect(() => {
         axios.get(`/api/contest/${id}`).then((data) => {
             setData(data.data);
-            console.log(data.data.tasks)
             setError(null);
         }).catch((error) => {
             setData(null);

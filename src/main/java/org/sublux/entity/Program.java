@@ -1,6 +1,14 @@
 package org.sublux.entity;
 
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.sublux.web.form.FileDTO;
+import org.sublux.web.form.ProgramUploadDTO;
+
 import javax.persistence.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Set;
 
 @Entity
 @Table(name = "program")
@@ -50,5 +58,21 @@ public class Program {
 
     public void setArchivedData(byte[] archivedData) {
         this.archivedData = archivedData;
+    }
+
+    public void setArchivedData(ProgramUploadDTO dto) throws IOException {
+        Set<FileDTO> files = dto.getFiles();
+        ByteArrayOutputStream archiveData = new ByteArrayOutputStream();
+        TarArchiveOutputStream taos = new TarArchiveOutputStream(archiveData);
+        taos.setAddPaxHeadersForNonAsciiNames(true);
+        for (FileDTO file : files) {
+            TarArchiveEntry entry = new TarArchiveEntry(file.getName());
+            entry.setSize(file.getData().length);
+            taos.putArchiveEntry(entry);
+            taos.write(file.getData());
+            taos.closeArchiveEntry();
+        }
+        taos.close();
+        setArchivedData(archiveData.toByteArray());
     }
 }

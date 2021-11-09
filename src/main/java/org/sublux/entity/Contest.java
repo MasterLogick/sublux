@@ -1,7 +1,7 @@
 package org.sublux.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import org.sublux.serializer.ContestSerializer;
+import org.sublux.serialization.ContestSerializer;
 
 import javax.persistence.*;
 import java.util.Set;

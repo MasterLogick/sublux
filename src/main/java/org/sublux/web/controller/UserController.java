@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.sublux.auth.UserDetailsImpl;
-import org.sublux.serializer.UserLong;
+import org.sublux.serialization.UserLong;
 import org.sublux.service.UserAlreadyExistsException;
 import org.sublux.service.UserService;
 import org.sublux.web.form.UserRegisterDTO;
@@ -36,8 +36,10 @@ public class UserController {
         }
         try {
             userService.registerUser(userRegisterDTO);
-        } catch (UserAlreadyExistsException | RoleNotFoundException e) {
+        } catch (UserAlreadyExistsException e) {
             bindingResult.addError(new FieldError("mail", "mail", e.getMessage()));
+            throw new BindException(bindingResult);
+        } catch (RoleNotFoundException e) {
             throw new BindException(bindingResult);
         }
         return ResponseEntity.ok().build();

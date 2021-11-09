@@ -1,7 +1,8 @@
 package org.sublux.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import org.sublux.serializer.LanguageSerializer;
+import org.sublux.isolation.LanguageImage;
+import org.sublux.serialization.LanguageSerializer;
 
 import javax.persistence.*;
 
@@ -29,6 +30,11 @@ public class Language {
     @Column(name = "run_script")
     private byte[] runScript;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    private User author;
+
+    @Embedded
+    private LanguageImage languageImage;
 
     public Language() {
     }
@@ -39,6 +45,8 @@ public class Language {
         dockerTar = language.dockerTar;
         buildScript = language.buildScript;
         runScript = language.getRunScript();
+        languageImage = language.languageImage;
+        author = language.author;
     }
 
     public Integer getId() {
@@ -79,5 +87,21 @@ public class Language {
 
     public void setRunScript(byte[] runScript) {
         this.runScript = runScript;
+    }
+
+    public LanguageImage getLanguageImage() {
+        return languageImage;
+    }
+
+    public void setLanguageImage(LanguageImage languageImage) {
+        this.languageImage = languageImage;
+    }
+
+    public User getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(User author) {
+        this.author = author;
     }
 }

@@ -1,10 +1,14 @@
 package org.sublux.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.sublux.serialization.TaskSerializer;
+
 import javax.persistence.*;
 import java.util.Set;
 
 @Entity
 @Table(name = "task")
+@JsonSerialize(using = TaskSerializer.class)
 public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,14 +27,14 @@ public class Task {
             inverseJoinColumns = {@JoinColumn(name = "lang_id")})
     private Set<Language> allowedLanguages;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Program inputValidator;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Program solution;
 
     @OneToMany(mappedBy = "task", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<Test> tests;
+    private Set<TestCluster> clusters;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private User author;
@@ -38,14 +42,14 @@ public class Task {
     public Task() {
     }
 
-    public Task(Long id, String name, String description, Set<Language> allowedLanguages, Program inputValidator, Program solution, Set<Test> tests, User author) {
+    public Task(Long id, String name, String description, Set<Language> allowedLanguages, Program inputValidator, Program solution, Set<TestCluster> clusters, User author) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.allowedLanguages = allowedLanguages;
         this.inputValidator = inputValidator;
         this.solution = solution;
-        this.tests = tests;
+        this.clusters = clusters;
         this.author = author;
     }
 
@@ -56,7 +60,7 @@ public class Task {
         allowedLanguages = task.getAllowedLanguages();
         inputValidator = task.getInputValidator();
         solution = task.getSolution();
-        tests = task.getTests();
+        clusters = task.getClusters();
         author = task.getAuthor();
     }
 
@@ -108,12 +112,12 @@ public class Task {
         this.solution = solution;
     }
 
-    public Set<Test> getTests() {
-        return tests;
+    public Set<TestCluster> getClusters() {
+        return clusters;
     }
 
-    public void setTests(Set<Test> tests) {
-        this.tests = tests;
+    public void setTestClusters(Set<TestCluster> clusters) {
+        this.clusters = clusters;
     }
 
     public User getAuthor() {
