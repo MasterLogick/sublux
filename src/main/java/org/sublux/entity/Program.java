@@ -1,7 +1,9 @@
 package org.sublux.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.sublux.serialization.ProgramSerializer;
 import org.sublux.web.form.FileDTO;
 import org.sublux.web.form.ProgramUploadDTO;
 
@@ -12,6 +14,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = "program")
+@JsonSerialize(using = ProgramSerializer.class)
 public class Program {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.*;
 import org.sublux.ResponsePage;
 import org.sublux.auth.UserDetailsImpl;
 import org.sublux.entity.*;
-import org.sublux.repository.*;
+import org.sublux.repository.LanguageRepository;
+import org.sublux.repository.TaskRepository;
+import org.sublux.serialization.TaskLong;
 import org.sublux.test.InputOutputType;
 import org.sublux.web.form.TaskCreateDTO;
 
@@ -29,22 +31,16 @@ import java.util.stream.Collectors;
 public class TaskController {
     private final TaskRepository taskRepository;
     private final LanguageRepository languageRepository;
-    private final ProgramRepository programRepository;
-    private final TestRepository testRepository;
-    private final UserRepository userRepository;
 
-    public TaskController(TaskRepository taskRepository, LanguageRepository languageRepository, ProgramRepository programRepository, TestRepository testRepository, UserRepository userRepository) {
+    public TaskController(TaskRepository taskRepository, LanguageRepository languageRepository) {
         this.taskRepository = taskRepository;
         this.languageRepository = languageRepository;
-        this.programRepository = programRepository;
-        this.testRepository = testRepository;
-        this.userRepository = userRepository;
     }
 
     @GetMapping(path = "/{id}")
     @ResponseBody
-    public Task getTask(@PathVariable Long id) {
-        return taskRepository.findById(id).orElse(null);
+    public TaskLong getTask(@PathVariable Long id) {
+        return new TaskLong(taskRepository.findById(id).orElse(null));
     }
 
     @PostMapping(path = "/create")

@@ -1,10 +1,14 @@
 package org.sublux.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.sublux.serialization.TestClusterSerializer;
+
 import javax.persistence.*;
 import java.util.Set;
 
 @Entity
 @Table(name = "test_cluster")
+@JsonSerialize(using = TestClusterSerializer.class)
 public class TestCluster {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

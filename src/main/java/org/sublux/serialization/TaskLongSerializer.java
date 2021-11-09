@@ -22,12 +22,12 @@ public class TaskLongSerializer extends JsonSerializer<Task> {
         }
         generator.writeEndArray();
         generator.writeObjectField("validator", value.getInputValidator());
-        generator.writeObjectField("solution", value.getSolution());
         generator.writeArrayFieldStart("tasks");
         for (TestCluster cluster : value.getClusters()) {
-            generator.writeObject(new TestClusterLong(cluster));
+            generator.writeObject(cluster);
         }
         generator.writeEndArray();
+        generator.writeObjectField("author", value.getAuthor());
         generator.writeEndObject();
     }
 }
