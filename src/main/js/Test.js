@@ -3,6 +3,7 @@ import {Button, CloseButton, Form, Modal, Tab, Tabs} from "react-bootstrap";
 import {RequireAuthorized} from "./Authorization";
 import {fileToBase64File, stringToBase64} from "./Utill";
 import {EditableTable} from "./EditableTable";
+import {DropTextArea} from "./DropTextArea";
 
 export {TestsEditor, getTestsDTO};
 
@@ -71,137 +72,29 @@ function TestClusterEditor(props) {
                             setTests(tests.map((t, i) => i === key ? test : t));
                         }}/>
                     </td>
-                    <td className={"position-relative"}>
-                        {test.inputFile == null && <Form.Control
-                            as="textarea"
-                            placeholder="Type some text or drop a file..."
-                            name={`input${key}`}
-                            ref={test.inputRef}
-                            value={test.inputText}
-                            onChange={() => {
-                                test.inputText = test.inputRef.current.value;
-                                setTests(tests.map((t, i) => i === key ? test : t));
-                            }}
-                            onDragOver={event => {
-                                event.preventDefault();
-                                test.inputDrag = true;
-                                setTests(tests.map((t, i) => i === key ? test : t));
-                            }}
-                            className={"position-absolute top-0 start-0 w-100 h-100 overflow-scroll"}
-                            style={{whiteSpace: "pre"}}
-                        />}
-                        {test.inputFile != null && (<>
-                            <div
-                                className={"position-absolute top-50 start-50 translate-middle w-50 h-50 d-flex justify-content-center"}>
-                                <div className={"align-self-center"}>
-                                    File {test.inputFile.name}
-                                </div>
-                            </div>
-                            <div className={"position-absolute top-0 end-0"}>
-                                <CloseButton onClick={() => {
-                                    test.inputFile = null;
-                                    setTests(tests.map((t, i) => i === key ? test : t));
-                                }}/>
-                            </div>
-                        </>)}
-                        {test.inputDrag && (
-                            <div
-                                style={{
-                                    backgroundColor: "rgba(222,222,222,0.74)"
-                                }}
-                                onDrop={event => {
-                                    event.preventDefault();
-                                    test.inputFile = event.dataTransfer.files[0];
-                                    test.inputDrag = false;
-                                    test.inputText = "";
-                                    setTests(tests.map((t, i) => i === key ? test : t));
-                                }}
-                                onDragOver={event => {
-                                    event.preventDefault();
-                                }}
-                                onDragEnter={event => {
-                                    event.preventDefault();
-                                    test.inputDrag = true;
-                                    setTests(tests.map((t, i) => i === key ? test : t));
-                                }}
-                                onDragLeave={event => {
-                                    event.preventDefault();
-                                    test.inputDrag = false;
-                                    setTests(tests.map((t, i) => i === key ? test : t));
-                                }}
-                                className={"position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center"}
-                            >
-                                <div className={"align-self-center"}>
-                                    Drop file here
-                                </div>
-                            </div>
-                        )}
+                    <td style={{height: "1px"}}>
+                        <DropTextArea file={test.inputFile} text={test.inputText}
+                                      onTextChange={(text) => {
+                                          test.inputText = text;
+                                          setTests(tests.map((t, i) => i === key ? test : t));
+                                      }}
+                                      onFileChange={(file) => {
+                                          test.inputFile = file;
+                                          setTests(tests.map((t, i) => i === key ? test : t));
+                                      }}
+                        />
                     </td>
-                    <td className={"position-relative"}>
-                        {test.outputFile == null && <Form.Control
-                            as="textarea"
-                            placeholder="Type some text or drop a file..."
-                            name={`output${key}`}
-                            ref={test.outputRef}
-                            value={test.outputText}
-                            onChange={() => {
-                                test.outputText = test.outputRef.current.value;
-                                setTests(tests.map((t, i) => i === key ? test : t));
-                            }}
-                            onDragOver={event => {
-                                event.preventDefault();
-                                test.outputDrag = true;
-                                setTests(tests.map((t, i) => i === key ? test : t));
-                            }}
-                            className={"position-absolute top-0 start-0 w-100 h-100 overflow-scroll"}
-                            style={{whiteSpace: "pre"}}
-                        />}
-                        {test.outputFile != null && (<>
-                            <div
-                                className={"position-absolute top-50 start-50 translate-middle w-50 h-50 d-flex justify-content-center"}>
-                                <div className={"align-self-center"}>
-                                    File {test.outputFile.name}
-                                </div>
-                            </div>
-                            <div className={"position-absolute top-0 end-0"}>
-                                <CloseButton onClick={() => {
-                                    test.outputFile = null;
-                                    setTests(tests.map((t, i) => i === key ? test : t));
-                                }}/>
-                            </div>
-                        </>)}
-                        {test.outputDrag && (
-                            <div
-                                style={{
-                                    backgroundColor: "rgba(222,222,222,0.74)"
-                                }}
-                                onDrop={event => {
-                                    event.preventDefault();
-                                    test.outputFile = event.dataTransfer.files[0];
-                                    test.outputDrag = false;
-                                    test.outputText = "";
-                                    setTests(tests.map((t, i) => i === key ? test : t));
-                                }}
-                                onDragOver={event => {
-                                    event.preventDefault();
-                                }}
-                                onDragEnter={event => {
-                                    event.preventDefault();
-                                    test.outputDrag = true;
-                                    setTests(tests.map((t, i) => i === key ? test : t));
-                                }}
-                                onDragLeave={event => {
-                                    event.preventDefault();
-                                    test.outputDrag = false;
-                                    setTests(tests.map((t, i) => i === key ? test : t));
-                                }}
-                                className={"position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center"}
-                            >
-                                <div className={"align-self-center"}>
-                                    Drop file here
-                                </div>
-                            </div>
-                        )}
+                    <td style={{height: "1px"}}>
+                        <DropTextArea file={test.outputFile} text={test.outputText}
+                                      onTextChange={(text) => {
+                                          test.outputText = text;
+                                          setTests(tests.map((t, i) => i === key ? test : t));
+                                      }}
+                                      onFileChange={(file) => {
+                                          test.outputFile = file;
+                                          setTests(tests.map((t, i) => i === key ? test : t));
+                                      }}
+                        />
                     </td>
                 </>
             )
