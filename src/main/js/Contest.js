@@ -5,6 +5,7 @@ import {Link, Route, Switch, useHistory, useParams} from "react-router-dom";
 import {RequireAuthorized, useUser} from "./Authorization";
 import {getMyTasks} from "./Task";
 import PagedList from "./PagedList";
+import {EditableTable} from "./EditableTable";
 
 export default function Contest(props) {
     return (
@@ -100,6 +101,10 @@ function ContestInfo() {
 }
 
 function ContestCreateForm() {
+    const newElement = () => {
+        return {ref: React.createRef(), task: null};
+    };
+
     let name = React.createRef();
     let description = React.createRef();
     let addTask = React.createRef();
@@ -108,8 +113,9 @@ function ContestCreateForm() {
     const [nameValidationError, setNameValidationError] = useState(null);
     const [descriptionValidationError, setDescriptionValidationError] = useState(null);
     const [tasksValidationError, setTasksValidationError] = useState(null);
-    const [selectedTasks, setSelectedTasks] = useState([]);
+    const [selectedTasks, setSelectedTasks] = useState([newElement()]);
     const [unusedTasks, setUnusedTasks] = useState([]);
+
     useEffect(() => {
         getMyTasks(user).then(setUnusedTasks);
     }, []);
@@ -126,7 +132,7 @@ function ContestCreateForm() {
         axios.post("/api/contest/create", {
             name: name.current.value,
             description: description.current.value,
-            taskIds: selectedTasks.map(task => task.id)
+            taskIds: selectedTasks.map(task => task.task.id)
         }).then(() => history.push("/")).catch(err => {
             for (const error of err.response.data.errorList) {
                 switch (error.objectName) {
@@ -164,57 +170,38 @@ function ContestCreateForm() {
                 <div className={"mb-3"}>
                     <Form.Label>Task list</Form.Label>
                     <hr className={"mb-2 mt-0"}/>
-                    <Table borderless responsive className={"d-flex me-auto"}>
-                        <tbody>
-                        {(() => selectedTasks.map((task, index) => (
-                            <tr key={index} className={"d-flex align-items-center"}>
-                                <td>{`Task ${index + 1}`}</td>
-                                <td>{task.name}</td>
-                                <td>
-                                    <Button variant={"outline-dark"} onClick={() => {
-                                        const task = selectedTasks[index];
-                                        setSelectedTasks(selectedTasks.filter((elem, i) => i !== index));
-                                        setUnusedTasks(unusedTasks.concat(task));
-                                    }}>-</Button>
-                                </td>
-                            </tr>
-                        )))()}
-                        {(() => {
-                            if (unusedTasks.length > 0)
-                                return (
-                                    <tr className={"d-flex align-items-center"}>
-                                        <td>{`Task ${selectedTasks.length + 1}`}</td>
-                                        <td colSpan={2}>
-                                            <Form.Group controlId="formTask">
-                                                <Form.Select placeholder={"Add task"} onChange={() => {
-                                                    const task = unusedTasks[addTask.current.selectedIndex - 1];
-                                                    setUnusedTasks(unusedTasks.filter((elem, index) => index !== addTask.current.selectedIndex - 1));
-                                                    setSelectedTasks(selectedTasks.concat(task));
-                                                    addTask.current.selectedIndex = 0;
-                                                }} ref={addTask} isInvalid={tasksValidationError !== null}>
-                                                    <option>Select task</option>
-                                                    {(() => unusedTasks.map((task, key) => (
-                                                        <option key={key}>{task.name}</option>
-                                                    )))()}
-                                                </Form.Select>
-                                                <Form.Control.Feedback
-                                                    type={"invalid"}>{tasksValidationError}</Form.Control.Feedback>
-                                            </Form.Group>
-                                        </td>
-                                    </tr>
-                                );
-                        })()}
-                        {(() => {
-                            if (unusedTasks.length + selectedTasks.length === 0) return (
-                                <tr>
-                                    <td>
-                                        You do not own any tasks. <Link to={"/task/create"}>Create</Link> one first.
-                                    </td>
-                                </tr>
-                            );
-                        })()}
-                        </tbody>
-                    </Table>
+                    {selectedTasks.length + unusedTasks.length === 0 && (
+                        <div>You do not own any tasks. <Link to={"/task/create"}>Create</Link> one first.</div>
+                    )}
+                    <EditableTable classname={"d-flex me-auto"} data={selectedTasks} onChange={setSelectedTasks}
+                                   dataMapper={(task, index) => {
+                                       return (
+                                           <>
+                                               <td>{`Task ${index + 1}`}</td>
+                                               <td>
+                                                   <Form.Select onChange={() => {
+                                                       const t = unusedTasks[task.ref.current.selectedIndex - 1];
+                                                       const newUnused = unusedTasks.filter((elem, i) => i !== task.ref.current.selectedIndex - 1);
+                                                       setUnusedTasks(task.task ? newUnused.concat(task.task) : newUnused);
+                                                       task.task = t;
+                                                       setSelectedTasks(selectedTasks.map((elem, i) => i === index ? task : elem));
+                                                   }} ref={task.ref}>
+                                                       <option>{task.task?.name || "Select task"}</option>
+                                                       {(() => unusedTasks.map((task, key) => (
+                                                           <option key={key}>{task.name}</option>
+                                                       )))()}
+                                                   </Form.Select>
+                                               </td>
+                                           </>
+                                       );
+                                   }}
+                                   newElement={newElement}
+                                   columns={(
+                                       <>
+                                           <td className={"col-2"}/>
+                                           <td/>
+                                       </>
+                                   )}/>
                 </div>
                 <Form.Group>
                     <Button type="submit" variant="dark">Create</Button>

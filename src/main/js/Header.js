@@ -12,7 +12,7 @@ export default function Header() {
                 <Navbar.Collapse id="responsive-navbar-nav">
                     <Nav className="me-auto">
                         <Link to="/contest" className={"nav-link"}>Contests</Link>
-                        <Link to="/task" className={"nav-link"}>Tasks</Link>
+                        <Link to="/language" className={"nav-link"}>Supported languages</Link>
                     </Nav>
                     <Nav>
                         <UserHeaderDropdown/>
