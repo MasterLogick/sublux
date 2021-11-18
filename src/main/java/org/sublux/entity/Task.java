@@ -1,9 +1,16 @@
 package org.sublux.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.sublux.isolation.BuildContainer;
+import org.sublux.isolation.BuildReport;
+import org.sublux.isolation.DockerException;
+import org.sublux.isolation.IsolationManager;
 import org.sublux.serialization.TaskSerializer;
 
 import javax.persistence.*;
+import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -34,7 +41,7 @@ public class Task {
     private Program solution;
 
     @OneToMany(mappedBy = "task", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<TestCluster> clusters;
+    private List<TestCluster> clusters;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private User author;
@@ -42,7 +49,7 @@ public class Task {
     public Task() {
     }
 
-    public Task(Long id, String name, String description, Set<Language> allowedLanguages, Program inputValidator, Program solution, Set<TestCluster> clusters, User author) {
+    public Task(Long id, String name, String description, Set<Language> allowedLanguages, Program inputValidator, Program solution, List<TestCluster> clusters, User author) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -112,11 +119,11 @@ public class Task {
         this.solution = solution;
     }
 
-    public Set<TestCluster> getClusters() {
+    public List<TestCluster> getClusters() {
         return clusters;
     }
 
-    public void setTestClusters(Set<TestCluster> clusters) {
+    public void setTestClusters(List<TestCluster> clusters) {
         this.clusters = clusters;
     }
 
@@ -126,5 +133,19 @@ public class Task {
 
     public void setAuthor(User author) {
         this.author = author;
+    }
+
+    public void startSolutionEvaluation(IsolationManager isolationManager, Program solution) {
+        Language lang = solution.getLang();
+        boolean allowed = getAllowedLanguages().stream().anyMatch(l -> Objects.equals(l.getId(), lang.getId()));
+        if (!allowed) throw new IllegalArgumentException("Solution language is disallowed for this task");
+        try {
+            BuildContainer buildContainer = isolationManager.createBuildContainer(lang);
+            BuildReport report = buildContainer.buildSolution(solution);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (DockerException e) {
+            e.printStackTrace();
+        }
     }
 }

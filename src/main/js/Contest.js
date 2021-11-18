@@ -170,7 +170,7 @@ function ContestCreateForm() {
                 <div className={"mb-3"}>
                     <Form.Label>Task list</Form.Label>
                     <hr className={"mb-2 mt-0"}/>
-                    {selectedTasks.length + unusedTasks.length === 0 && (
+                    {(selectedTasks.length === 1 && selectedTasks[0].task == null && unusedTasks.length === 0) && (
                         <div>You do not own any tasks. <Link to={"/task/create"}>Create</Link> one first.</div>
                     )}
                     <EditableTable classname={"d-flex me-auto"} data={selectedTasks} onChange={setSelectedTasks}

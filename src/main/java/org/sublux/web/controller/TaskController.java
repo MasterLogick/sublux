@@ -103,7 +103,10 @@ public class TaskController {
                         taskCreateDTO.getTests().stream().map((cluster -> {
                             TestCluster c = new TestCluster();
                             c.setName(cluster.getName());
+                            c.setMemoryLimit(cluster.getMemoryLimit());
+                            c.setTimeLimit(cluster.getTimeLimit());
                             c.setTask(task);
+                            cluster.getTests().forEach(t -> System.out.println(t.getPoints()));
                             c.setTests(
                                     cluster.getTests().stream().map(test -> {
                                         Test t = new Test();
@@ -114,9 +117,9 @@ public class TaskController {
                                         t.setOutputConsumerTypeId(InputOutputType.PLAIN_TEXT);
                                         t.setTestCluster(c);
                                         return t;
-                                    }).collect(Collectors.toSet()));
+                                    }).collect(Collectors.toList()));
                             return c;
-                        })).collect(Collectors.toSet()));
+                        })).collect(Collectors.toList()));
                 taskRepository.save(task);
                 return ResponseEntity.ok().build();
             }

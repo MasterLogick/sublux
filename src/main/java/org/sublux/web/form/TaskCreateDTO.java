@@ -2,6 +2,7 @@ package org.sublux.web.form;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 import java.util.Set;
 
 public class TaskCreateDTO {
@@ -25,7 +26,7 @@ public class TaskCreateDTO {
 
     @NotNull
     @NotEmpty
-    private Set<ClusterCreateDTO> tests;
+    private List<ClusterCreateDTO> tests;
 
     public String getName() {
         return name;
@@ -67,11 +68,11 @@ public class TaskCreateDTO {
         this.solution = solution;
     }
 
-    public Set<ClusterCreateDTO> getTests() {
+    public List<ClusterCreateDTO> getTests() {
         return tests;
     }
 
-    public void setTests(Set<ClusterCreateDTO> tests) {
+    public void setTests(List<ClusterCreateDTO> tests) {
         this.tests = tests;
     }
 }

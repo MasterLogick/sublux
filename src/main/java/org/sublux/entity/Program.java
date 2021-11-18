@@ -1,8 +1,6 @@
 package org.sublux.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.sublux.serialization.ProgramSerializer;
 import org.sublux.web.form.FileDTO;
 import org.sublux.web.form.ProgramUploadDTO;
@@ -11,6 +9,8 @@ import javax.persistence.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Entity
 @Table(name = "program")
@@ -66,16 +66,14 @@ public class Program {
     public void setArchivedData(ProgramUploadDTO dto) throws IOException {
         Set<FileDTO> files = dto.getFiles();
         ByteArrayOutputStream archiveData = new ByteArrayOutputStream();
-        TarArchiveOutputStream taos = new TarArchiveOutputStream(archiveData);
-        taos.setAddPaxHeadersForNonAsciiNames(true);
+        ZipOutputStream zos = new ZipOutputStream(archiveData);
         for (FileDTO file : files) {
-            TarArchiveEntry entry = new TarArchiveEntry(file.getName());
-            entry.setSize(file.getData().length);
-            taos.putArchiveEntry(entry);
-            taos.write(file.getData());
-            taos.closeArchiveEntry();
+            ZipEntry entry = new ZipEntry(file.getName());
+            zos.putNextEntry(entry);
+            zos.write(file.getData());
+            zos.closeEntry();
         }
-        taos.close();
+        zos.close();
         setArchivedData(archiveData.toByteArray());
     }
 }

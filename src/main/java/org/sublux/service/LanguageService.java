@@ -3,8 +3,10 @@ package org.sublux.service;
 import org.springframework.stereotype.Service;
 import org.sublux.auth.UserDetailsImpl;
 import org.sublux.entity.Language;
+import org.sublux.isolation.DockerException;
 import org.sublux.isolation.DockerTasksThreadPool;
 import org.sublux.isolation.IsolationManager;
+import org.sublux.isolation.LanguageImage;
 import org.sublux.repository.LanguageRepository;
 import org.sublux.web.form.LanguageCreateDTO;
 
@@ -34,13 +36,13 @@ public class LanguageService {
             e.printStackTrace();
         }
         dockerTasksThreadPool.execute(() -> {
-           /* LanguageImage image = null;
+            LanguageImage image = null;
             try {
                 image = isolationManager.createLanguageImage(language);
             } catch (IOException | DockerException e) {
                 e.printStackTrace();
             }
-            language.setLanguageImage(image);*/
+            language.setLanguageImage(image);
             languageRepository.save(language);
         });
     }

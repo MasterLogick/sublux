@@ -7,9 +7,9 @@ import org.sublux.repository.TaskRepository;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
-import java.util.Set;
+import java.util.List;
 
-public class TaskAuthorshipValidator implements ConstraintValidator<UserOwnsTasks, Object> {
+public class TaskAuthorshipValidator implements ConstraintValidator<UserOwnsTasks, List<Long>> {
     @Autowired
     private TaskRepository taskRepository;
 
@@ -18,21 +18,11 @@ public class TaskAuthorshipValidator implements ConstraintValidator<UserOwnsTask
     }
 
     @Override
-    public boolean isValid(Object o, ConstraintValidatorContext constraintValidatorContext) {
-        if (o instanceof Set) {
-            Set l = (Set) o;
-            if (l.size() > 0 && l.iterator().next() instanceof Long) {
-                UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-                Set<Long> tasks = (Set<Long>) o;
-                if (tasks != null) {
-                    return tasks.stream().allMatch(
-                            (id) -> taskRepository.findById(id).map(
-                                    task -> task.getAuthor().getId().equals(userDetails.getId())
-                            ).orElse(false));
-                }
-            }
-            return false;
-        }
-        return false;
+    public boolean isValid(List<Long> l, ConstraintValidatorContext constraintValidatorContext) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return l.stream().allMatch(
+                (id) -> taskRepository.findById(id).map(
+                        task -> task.getAuthor().getId().equals(userDetails.getId())
+                ).orElse(false));
     }
 }

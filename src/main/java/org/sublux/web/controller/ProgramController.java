@@ -1,59 +1,86 @@
 package org.sublux.web.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.multipart.MultipartFile;
+import org.sublux.auth.UserDetailsImpl;
+import org.sublux.entity.Language;
 import org.sublux.entity.Program;
+import org.sublux.entity.Task;
+import org.sublux.isolation.IsolationManager;
 import org.sublux.repository.LanguageRepository;
-import org.sublux.repository.ProgramRepository;
-import org.sublux.repository.UserRepository;
+import org.sublux.repository.TaskRepository;
+import org.sublux.web.form.SolutionUploadDTO;
 
-import java.io.ByteArrayOutputStream;
+import javax.validation.Valid;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+import java.util.Objects;
+import java.util.Optional;
 
 @Controller
-@RequestMapping(path = "/api/program")
+@RequestMapping(path = "/api/solution")
 public class ProgramController {
-    private final ProgramRepository programRepository;
-    private final UserRepository userRepository;
+    private final TaskRepository taskRepository;
     private final LanguageRepository languageRepository;
+    private final IsolationManager isolationManager;
 
-    public ProgramController(ProgramRepository programRepository, UserRepository userRepository, LanguageRepository languageRepository) {
-        this.programRepository = programRepository;
-        this.userRepository = userRepository;
+    public ProgramController(TaskRepository taskRepository, LanguageRepository languageRepository, IsolationManager isolationManager) {
+        this.taskRepository = taskRepository;
         this.languageRepository = languageRepository;
+        this.isolationManager = isolationManager;
     }
 
     @PostMapping(path = "/upload")
     @ResponseBody
-    public ResponseEntity<String> uploadProgram(@RequestParam(name = "user_id") Integer userId,
-                                                @RequestParam(name = "lang_id") Integer langId,
-                                                @RequestParam(name = "files") MultipartFile[] files) {
-        Program program = new Program();
-        program.setAuthor(userRepository.findById(userId).orElse(null));
-        program.setLang(languageRepository.findById(langId).orElse(null));
-        ByteArrayOutputStream compressedData = new ByteArrayOutputStream();
-        ZipOutputStream zos = new ZipOutputStream(compressedData, StandardCharsets.UTF_8);
-        try {
-            for (MultipartFile file : files) {
-                zos.putNextEntry(new ZipEntry(file.getName()));
-                zos.write(file.getBytes());
-                zos.closeEntry();
-            }
-            zos.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().body(e.toString());
+    public ResponseEntity uploadSolution(@RequestBody @Valid SolutionUploadDTO solutionUploadDTO,
+                                         BindingResult bindingResult,
+                                         Authentication authentication) throws BindException {
+        if (bindingResult.hasErrors()) {
+            throw new BindException(bindingResult);
         }
-        program.setArchivedData(compressedData.toByteArray());
-        programRepository.save(program);
-        return ResponseEntity.ok(String.valueOf(files.length));
+        if (authentication != null) {
+            if (authentication.getPrincipal() instanceof UserDetailsImpl) {
+                UserDetailsImpl user = (UserDetailsImpl) authentication.getPrincipal();
+                Program solution = new Program();
+                Optional<Language> languageOptional = languageRepository.findById(solutionUploadDTO.getSolution().getLanguage());
+                if (languageOptional.isPresent()) {
+                    solution.setLang(languageOptional.get());
+                    solution.setAuthor(user);
+                    try {
+                        solution.setArchivedData(solutionUploadDTO.getSolution());
+                    } catch (IOException e) {
+                        bindingResult.addError(new ObjectError("solution", "Can not get solution files"));
+                        throw new BindException(bindingResult);
+                    }
+                    Optional<Task> taskOptional = taskRepository.findById(solutionUploadDTO.getTaskId());
+                    if (taskOptional.isPresent()) {
+                        Task task = taskOptional.get();
+                        boolean allowed = task.getAllowedLanguages().stream().anyMatch(l -> Objects.equals(l.getId(), solution.getLang().getId()));
+                        if (allowed) {
+                            task.startSolutionEvaluation(isolationManager, solution);
+                            return ResponseEntity.ok().build();
+                        } else {
+                            bindingResult.addError(new ObjectError("solution", "Solution language is disallowed for this task"));
+                            throw new BindException(bindingResult);
+                        }
+                    } else {
+                        bindingResult.addError(new ObjectError("taskId", "No task found"));
+                        throw new BindException(bindingResult);
+                    }
+                } else {
+                    bindingResult.addError(new ObjectError("solution", "No such language found"));
+                    throw new BindException(bindingResult);
+                }
+            }
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 }

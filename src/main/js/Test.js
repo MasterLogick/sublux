@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {Button, CloseButton, Form, Modal, Tab, Tabs} from "react-bootstrap";
+import {Button, CloseButton, Col, Form, InputGroup, Modal, Row, Tab, Tabs} from "react-bootstrap";
 import {RequireAuthorized} from "./Authorization";
 import {fileToBase64File, stringToBase64} from "./Utill";
 import {EditableTable} from "./EditableTable";
@@ -14,7 +14,12 @@ function getTestsDTO(testClusters) {
 function getClusterDTO(cluster) {
     return new Promise((resolve, reject) => {
         Promise.all(cluster.tests.map(getTestDTO)).then(tests => {
-            resolve({name: cluster.name, tests: tests});
+            resolve({
+                name: cluster.name,
+                timeLimit: cluster.timeLimitRef.current.value,
+                memoryLimit: cluster.memoryLimitRef.current.value,
+                tests: tests
+            });
         }).catch(reject);
     });
 }
@@ -56,56 +61,84 @@ function newTest() {
 }
 
 function newCluster() {
-    return {name: "Cluster", tests: [newTest()]};
+    return {name: "Cluster", timeLimitRef: React.createRef(), memoryLimitRef: React.createRef(), tests: [newTest()]};
 }
 
 function TestClusterEditor(props) {
-    const {tests, onChange: setTests} = props;
+    const {
+        tests,
+        onChange: setTests,
+        timeLimitRef,
+        memoryLimitRef
+    } = props;
+
     return (
-        <EditableTable bordered data={tests} onChange={setTests} dataMapper={
-            (test, key) => (
+        <>
+            <Form.Group as={Row} className="my-3" controlId="formTimeLimit">
+                <Form.Label column sm={2}>Time limit</Form.Label>
+                <Col sm={2}>
+                    <InputGroup>
+                        <Form.Control type="text" placeholder="Enter time limit" name="timeLimit"
+                                      ref={timeLimitRef}/>
+                        <InputGroup.Text>ms</InputGroup.Text>
+                    </InputGroup>
+                </Col>
+            </Form.Group>
+            <Form.Group as={Row} className="my-3" controlId="formMemoryLimit">
+                <Form.Label column sm={2}>Memory limit</Form.Label>
+                <Col sm={2}>
+                    <InputGroup>
+                        <Form.Control type="text" placeholder="Enter memory limit" name="memoryLimit"
+                                      ref={memoryLimitRef}/>
+                        <InputGroup.Text>MB</InputGroup.Text>
+                    </InputGroup>
+                </Col>
+            </Form.Group>
+            <EditableTable bordered data={tests} onChange={setTests} dataMapper={
+                (test, key) => (
+                    <>
+                        <td>
+                            <Form.Control type="text" value={test.points} ref={test.pointsRef}
+                                          placeholder="Points" name={`points${key}`} onChange={() => {
+                                test.points = test.pointsRef.current.value;
+                                setTests(tests.map((t, i) => i === key ? test : t));
+                            }}/>
+                        </td>
+                        <td style={{height: "1px"}}>
+                            <DropTextArea file={test.inputFile} text={test.inputText}
+                                          onTextChange={(text) => {
+                                              test.inputText = text;
+                                              setTests(tests.map((t, i) => i === key ? test : t));
+                                          }}
+                                          onFileChange={(file) => {
+                                              test.inputFile = file;
+                                              setTests(tests.map((t, i) => i === key ? test : t));
+                                          }}
+                            />
+                        </td>
+                        <td style={{height: "1px"}}>
+                            <DropTextArea file={test.outputFile} text={test.outputText}
+                                          onTextChange={(text) => {
+                                              test.outputText = text;
+                                              setTests(tests.map((t, i) => i === key ? test : t));
+                                          }}
+                                          onFileChange={(file) => {
+                                              test.outputFile = file;
+                                              setTests(tests.map((t, i) => i === key ? test : t));
+                                          }}
+                            />
+                        </td>
+                    </>
+                )
+            }
+                           newElement={newTest} columns={(
                 <>
-                    <td>
-                        <Form.Control type="text" value={test.points} ref={test.pointsRef}
-                                      placeholder="Points" name={`points${key}`} onChange={() => {
-                            test.points = test.pointsRef.current.value;
-                            setTests(tests.map((t, i) => i === key ? test : t));
-                        }}/>
-                    </td>
-                    <td style={{height: "1px"}}>
-                        <DropTextArea file={test.inputFile} text={test.inputText}
-                                      onTextChange={(text) => {
-                                          test.inputText = text;
-                                          setTests(tests.map((t, i) => i === key ? test : t));
-                                      }}
-                                      onFileChange={(file) => {
-                                          test.inputFile = file;
-                                          setTests(tests.map((t, i) => i === key ? test : t));
-                                      }}
-                        />
-                    </td>
-                    <td style={{height: "1px"}}>
-                        <DropTextArea file={test.outputFile} text={test.outputText}
-                                      onTextChange={(text) => {
-                                          test.outputText = text;
-                                          setTests(tests.map((t, i) => i === key ? test : t));
-                                      }}
-                                      onFileChange={(file) => {
-                                          test.outputFile = file;
-                                          setTests(tests.map((t, i) => i === key ? test : t));
-                                      }}
-                        />
-                    </td>
+                    <td className="col-1">Points</td>
+                    <td>Input</td>
+                    <td>Output</td>
                 </>
-            )
-        }
-                       newElement={newTest} columns={(
-            <>
-                <td className="col-1">Points</td>
-                <td>Input</td>
-                <td>Output</td>
-            </>
-        )}/>
+            )}/>
+        </>
     );
 }
 
@@ -166,7 +199,8 @@ function TestsEditor(props) {
                                                        c.tests = altered;
                                                    }
                                                    return c;
-                                               }))}/>
+                                               }))} timeLimitRef={cluster.timeLimitRef}
+                                               memoryLimitRef={cluster.memoryLimitRef}/>
                         </Tab>
                     ))}
                     <Tab eventKey={"new"} title={"+"}/>

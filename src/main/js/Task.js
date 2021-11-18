@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import axios from "axios";
-import {Button, Container, Form} from "react-bootstrap";
+import {Badge, Button, Container, Form, Tab, Tabs} from "react-bootstrap";
 import {Link, Route, Switch, useHistory, useParams} from "react-router-dom";
 import {isLogged, RequireAuthorized} from "./Authorization";
 import {getProgramDTO, ProgramUploadFormGroup} from "./Program";
@@ -70,7 +70,10 @@ function TaskCreateForm() {
                         solution: solutionDTO,
                         tests: testsDTO
                     }
-                    axios.post("/api/task/create", data).then(() => history.push("/")).catch(err => {
+                    console.log(JSON.stringify(data));
+                    axios.post("/api/task/create", JSON.stringify(data), {
+                        headers: {"Content-Type": "application/json"}
+                    }).then(() => history.push("/")).catch(err => {
                         err.response.data;
                     });
                 });
@@ -120,28 +123,78 @@ function TaskCreateForm() {
 
 function TaskFullView() {
     let {id} = useParams();
-    const [task, setTask] = useState();
+    const [task, setTask] = useState({});
+    const [srcValidationError, setSrcValidationError] = useState(null);
+    const [language, setLanguage] = useState(null);
+    const [src, setSrc] = useState(null);
     useEffect(() => {
         axios.get(`/api/task/${id}`).then(resp => {
             setTask(resp.data);
         });
     }, []);
-    if (task === undefined)
-        return null;
-    else
-        return (
-            <Container>
-                <h2>{task.name}</h2>
-                <div className={"text-muted"}>
-                    Author: <Link to={`/user/${task.author.id}`}
-                                  className={"text-secondary"}>{task.author.username}</Link>
-                </div>
-                <hr/>
-                <p>{task.description}</p>
-                <hr/>
-                ---Submit zone---
-            </Container>
-        );
+
+    function upload() {
+        getProgramDTO(src, language).then(program => {
+            const data = {
+                taskId: id,
+                solution: program
+            };
+            axios.post("/api/solution/upload", data).then(console.log).catch(console.log);
+        })
+    }
+
+    console.log(task);
+
+    return (
+        <Container>
+            <h2>{task.name}</h2>
+            <div className={"text-muted"}>
+                Author: <Link to={`/user/${task.author?.id}`}
+                              className={"text-secondary"}>{task.author?.username}</Link>
+            </div>
+            <hr/>
+            <div className={"mb-1"}>
+                Average time
+                limit: <Badge
+                bg={"secondary"}>{task.tasks?.map(cluster => cluster.timeLimit).reduce((a, b) => a + b, 0) / task.tasks?.length} ms</Badge>
+            </div>
+            <div>
+                Average memory
+                limit: <Badge
+                bg={"secondary"}>{task.tasks?.map(cluster => cluster.memoryLimit).reduce((a, b) => a + b, 0) / task.tasks?.length} MB</Badge>
+            </div>
+            <p/>
+            <p>{task.description}</p>
+            <hr/>
+            <h5>Tests</h5>
+            <Tabs>
+                {task.tasks?.map((c, key) => (<Tab key={key} title={c.name} eventKey={key}>
+                    <div className={"my-1"}>
+                        Time
+                        limit: <Badge
+                        bg={"secondary"}>{c.timeLimit} ms</Badge>
+                    </div>
+                    <div className={"my-1 mb-2"}>
+                        Memory
+                        limit: <Badge
+                        bg={"secondary"}>{c.memoryLimit} MB</Badge>
+                    </div>
+                    <div className={"d-flex justify-content-start overflow-scroll"}>
+                        {c.tests.map((t, i) => (
+                            <h5 className={"mx-1"}><Badge key={i} bg={"warning"}>{t.points}p</Badge></h5>
+                        ))}
+                    </div>
+                </Tab>))}
+            </Tabs>
+            <hr/>
+            <ProgramUploadFormGroup className="mb-3" name="upload"
+                                    isSrcInvalid={srcValidationError != null}
+                                    onSrcChange={setSrc} language={language} onLangChange={setLanguage}/>
+            <div className="d-flex justify-content-end">
+                <Button className="ms-auto" variant={"dark"} onClick={upload}>Upload</Button>
+            </div>
+        </Container>
+    );
 }
 
 function getMyTasks(user) {

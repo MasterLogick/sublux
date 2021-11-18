@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.sublux.serialization.ContestSerializer;
 
 import javax.persistence.*;
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Table(name = "contest")
@@ -25,40 +25,40 @@ public class Contest {
     @JoinTable(name = "contest_task_lookup",
             joinColumns = {@JoinColumn(name = "contest_id")},
             inverseJoinColumns = {@JoinColumn(name = "task_id")})
-    private Set<Task> tasks;
+    private List<Task> tasks;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private User author;
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
 
     public Integer getId() {
         return id;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getDescription() {
         return description;
     }
 
-    public Set<Task> getTasks() {
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public List<Task> getTasks() {
         return tasks;
     }
 
-    public void setTasks(Set<Task> tasks) {
+    public void setTasks(List<Task> tasks) {
         this.tasks = tasks;
     }
 

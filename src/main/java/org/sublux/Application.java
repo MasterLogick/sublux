@@ -5,7 +5,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.sublux.entity.Role;
+import org.sublux.isolation.privileged.UnprivilegedExecutorClient;
 import org.sublux.repository.RoleRepository;
+
+import java.io.IOException;
 
 @SpringBootApplication
 public class Application {
@@ -15,7 +18,17 @@ public class Application {
     }
 
     @Bean
-    public CommandLineRunner run(RoleRepository roleRepository) throws Exception {
+    public UnprivilegedExecutorClient getExecutor() {
+        try {
+            return new UnprivilegedExecutorClient();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Bean
+    public CommandLineRunner createUserRole(RoleRepository roleRepository) throws Exception {
         return (String[] args) -> {
             if (!roleRepository.findByName("USER").isPresent()) {
                 Role userRole = new Role();
@@ -24,5 +37,4 @@ public class Application {
             }
         };
     }
-
 }

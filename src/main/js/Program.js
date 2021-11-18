@@ -3,12 +3,10 @@ import {Form} from "react-bootstrap";
 import {RequireAuthorized} from "./Authorization";
 import {LanguageSelector} from "./Language";
 import {fileToBase64File} from "./Utill";
-import Tar from "tar-js";
 
 export {ProgramUploadFormGroup, getProgramDTO};
 
 function getProgramDTO(files, language) {
-    new Tar().append("", "");
     return new Promise((resolve, reject) => {
         Promise.all(Array.from(files).map(fileToBase64File)).then(converted => {
             resolve({files: converted, language: language[0].id});

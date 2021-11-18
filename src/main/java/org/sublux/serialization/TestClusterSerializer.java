@@ -13,6 +13,8 @@ public class TestClusterSerializer extends JsonSerializer<TestCluster> {
     public void serialize(TestCluster value, JsonGenerator generator, SerializerProvider serializers) throws IOException {
         generator.writeStartObject();
         generator.writeStringField("name", value.getName());
+        generator.writeNumberField("memoryLimit", value.getMemoryLimit());
+        generator.writeNumberField("timeLimit", value.getTimeLimit());
         generator.writeArrayFieldStart("tests");
         for (Test test : value.getTests()) {
             generator.writeObject(test);

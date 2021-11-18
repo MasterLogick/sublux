@@ -17,9 +17,9 @@ import org.sublux.web.form.ContestCreateDTO;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @Controller
 @RequestMapping("/api/contest")
@@ -42,7 +42,7 @@ public class ContestController {
                 contest.setName(contestCreateDTO.getName());
                 contest.setDescription(contestCreateDTO.getDescription());
                 contest.setAuthor(user);
-                Set<Task> tasks = new HashSet<>();
+                List<Task> tasks = new ArrayList<>();
                 taskRepository.findAllById(contestCreateDTO.getTaskIds()).forEach(tasks::add);
                 contest.setTasks(tasks);
                 contestRepository.save(contest);

@@ -208,7 +208,7 @@ function LanguageSelector(props) {
             <Stack direction="horizontal" gap={2}>
                 {selected.map((lang, key) => (
                     <div className={"px-1 border border-1 border-dark rounded-3 d-flex align-items-center"}
-                         style={{whiteSpace: "nowrap"}}>
+                         style={{whiteSpace: "nowrap"}} key={key}>
                         {lang.name} <CloseButton onClick={() => setSelected(selected.filter(it => it != lang))}/>
                     </div>
                 ))}
