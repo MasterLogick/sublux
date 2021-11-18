@@ -21,7 +21,7 @@ public class Application {
     public UnprivilegedExecutorClient getExecutor() {
         try {
             return new UnprivilegedExecutorClient();
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
         return null;

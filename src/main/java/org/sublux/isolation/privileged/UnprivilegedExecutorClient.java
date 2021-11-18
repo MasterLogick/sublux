@@ -10,19 +10,12 @@ public class UnprivilegedExecutorClient {
     private final BufferedReader resultStream;
     private final Object locker = new Object();
 
-    public UnprivilegedExecutorClient() throws IOException {
+    public UnprivilegedExecutorClient() throws IOException, InterruptedException {
         PrivilegedExecutorServer server = new PrivilegedExecutorServer();
         server.start();
-        server.getLocker().unlock();
-        try {
-            Object o = server.getAwait();
-            synchronized (o) {
-                o.wait();
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        server.getLatch().await();
         int port = server.getPort().get();
+        //noinspection UnusedAssignment
         server = null;
         System.gc();
         if (port == -1) {

@@ -4,19 +4,16 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 class PrivilegedExecutorServer extends Thread {
     private final AtomicInteger port;
-    private final Object await = new Object();
-    private final Lock locker;
+    private final CountDownLatch latch;
 
     public PrivilegedExecutorServer() {
         port = new AtomicInteger(-1);
-        locker = new ReentrantLock();
-        locker.lock();
+        latch = new CountDownLatch(1);
         setDaemon(true);
     }
 
@@ -52,7 +49,6 @@ class PrivilegedExecutorServer extends Thread {
 
     @Override
     public void run() {
-        locker.lock();
         String username = System.getProperty("user.name");
         Process executor = null;
         try {
@@ -61,9 +57,7 @@ class PrivilegedExecutorServer extends Thread {
             e.printStackTrace();
         }
         if (executor == null) {
-            synchronized (await) {
-                await.notifyAll();
-            }
+            latch.countDown();
             port.set(-1);
             return;
         }
@@ -74,16 +68,12 @@ class PrivilegedExecutorServer extends Thread {
             ss = new ServerSocket(0, 1);
         } catch (IOException e) {
             e.printStackTrace();
-            synchronized (await) {
-                await.notifyAll();
-            }
+            latch.countDown();
             port.set(-1);
             return;
         }
         port.set(ss.getLocalPort());
-        synchronized (await) {
-            await.notifyAll();
-        }
+        latch.countDown();
         Socket s;
         BufferedReader clientCommandInputStream;
         PrintStream clientResultOutputStream;
@@ -188,11 +178,7 @@ class PrivilegedExecutorServer extends Thread {
         return port;
     }
 
-    public Object getAwait() {
-        return await;
-    }
-
-    public Lock getLocker() {
-        return locker;
+    public CountDownLatch getLatch() {
+        return latch;
     }
 }
