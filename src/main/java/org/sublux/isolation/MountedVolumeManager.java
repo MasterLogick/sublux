@@ -16,6 +16,34 @@ public class MountedVolumeManager {
         this.executorClient = executorClient;
     }
 
+    public MountedVolume createMountedVolume(long sizeMB) throws IOException, TerminationException {
+        File fs = Files.createTempFile("sublux", ".ext4").toFile();
+        File mountPoint = Files.createTempDirectory("sublux").toFile();
+        try {
+            createFSFile(fs, sizeMB);
+        } catch (IOException | TerminationException e) {
+            e.printStackTrace();
+            fs.delete();
+            mountPoint.delete();
+            throw e;
+        }
+        try {
+            executorClient.executeVolumeMounting(fs, mountPoint);
+        } catch (IOException e) {
+            e.printStackTrace();
+            fs.delete();
+            mountPoint.delete();
+            throw e;
+        }
+        return new MountedVolume(mountPoint, fs, sizeMB, this);
+    }
+
+    public void deleteMountedVolume(MountedVolume volume) throws IOException {
+        executorClient.executeVolumeUmount(volume.getExternalMountPoint());
+        volume.getExternalMountPoint().delete();
+        volume.getDriveFile().delete();
+    }
+
     private void createFSFile(File fs, long sizeMB) throws TerminationException, IOException {
         ProcessBuilder processBuilder = new ProcessBuilder("mkfs.ext4", fs.getAbsolutePath(), String.format("%dm", sizeMB));
         String processCommand = processBuilder.command().stream().reduce("", (s, s2) -> s + " " + s2);
@@ -41,25 +69,4 @@ public class MountedVolumeManager {
         }
     }
 
-    public MountedVolume createMountedVolume(long sizeMB) throws IOException, TerminationException {
-        File fs = Files.createTempFile("sublux", ".ext4").toFile();
-        File mountPoint = Files.createTempDirectory("sublux").toFile();
-        try {
-            createFSFile(fs, sizeMB);
-        } catch (IOException | TerminationException e) {
-            e.printStackTrace();
-            fs.delete();
-            mountPoint.delete();
-            throw e;
-        }
-        try {
-            executorClient.executeVolumeMounting(fs, mountPoint);
-        } catch (IOException e) {
-            e.printStackTrace();
-            fs.delete();
-            mountPoint.delete();
-            throw e;
-        }
-        return new MountedVolume(mountPoint, fs, sizeMB);
-    }
 }

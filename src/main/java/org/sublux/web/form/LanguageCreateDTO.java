@@ -4,10 +4,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 
 public class LanguageCreateDTO {
     @NotNull
     @NotEmpty
+    @Pattern(regexp = "^[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,59}$", message = "Name must contain at least one alphanumerical or underscore symbol and do not exceed 60 symbols")
     private String name;
 
     @NotNull

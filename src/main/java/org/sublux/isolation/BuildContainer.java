@@ -3,11 +3,13 @@ package org.sublux.isolation;
 import com.github.dockerjava.api.DockerClient;
 import org.sublux.entity.Language;
 import org.sublux.entity.Program;
+import org.sublux.entity.Report;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -19,31 +21,33 @@ public class BuildContainer extends Container {
 
     private final Language language;
     private final MountedVolume volume;
-    private final DockerClient client;
+    private final int buildTimeout;
 
-    public BuildContainer(Language language, MountedVolume volume, String id, DockerClient client) {
-        super(id);
+    public BuildContainer(Language language, MountedVolume volume, String id, int buildTimeout, int logObtainTimeout, DockerClient client) {
+        super(id, client, logObtainTimeout);
         this.language = language;
         this.volume = volume;
-        this.client = client;
+        this.buildTimeout = buildTimeout;
     }
 
-    public BuildReport buildSolution(Program solution) throws IOException {
+    public Report buildSolution(Program solution) throws IOException, InterruptedException {
         if (!solution.getLang().getId().equals(language.getId())) {
             throw new IllegalArgumentException("Container prepared for another language");
         }
+        prepareContext();
         extractSrc(solution.getArchivedData());
         copyBuildScript(solution.getLang().getBuildScript());
-        prepareContext();
-        client.startContainerCmd(getId()).exec();
+        startContainer();
+        await(buildTimeout, TimeUnit.MILLISECONDS);
+        return stopAndGenerateReport();
+    }
 
-        return null;
+    public File getBuiltSolution() {
+        return new File(volume.getExternalMountPoint(), "/out");
     }
 
     private void extractSrc(byte[] zip) throws IOException {
-        File root = volume.getExternalMountPoint();
-        File src = new File(root, "src");
-        src.mkdir();
+        File src = new File(volume.getExternalMountPoint(), "src");
         byte[] buff = new byte[4096];
         ZipInputStream zin = new ZipInputStream(new ByteArrayInputStream(zip));
         try {
@@ -74,5 +78,13 @@ public class BuildContainer extends Container {
     private void prepareContext() {
         File outDir = new File(volume.getExternalMountPoint(), "out");
         outDir.mkdir();
+        File src = new File(volume.getExternalMountPoint(), "src");
+        src.mkdir();
+    }
+
+    @Override
+    public void close() throws IOException {
+        super.close();
+        volume.close();
     }
 }

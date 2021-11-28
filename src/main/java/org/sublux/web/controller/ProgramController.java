@@ -18,6 +18,7 @@ import org.sublux.entity.Task;
 import org.sublux.isolation.IsolationManager;
 import org.sublux.repository.LanguageRepository;
 import org.sublux.repository.TaskRepository;
+import org.sublux.service.EvaluationService;
 import org.sublux.web.form.SolutionUploadDTO;
 
 import javax.validation.Valid;
@@ -31,11 +32,13 @@ public class ProgramController {
     private final TaskRepository taskRepository;
     private final LanguageRepository languageRepository;
     private final IsolationManager isolationManager;
+    private final EvaluationService evaluationService;
 
-    public ProgramController(TaskRepository taskRepository, LanguageRepository languageRepository, IsolationManager isolationManager) {
+    public ProgramController(TaskRepository taskRepository, LanguageRepository languageRepository, IsolationManager isolationManager, EvaluationService evaluationService) {
         this.taskRepository = taskRepository;
         this.languageRepository = languageRepository;
         this.isolationManager = isolationManager;
+        this.evaluationService = evaluationService;
     }
 
     @PostMapping(path = "/upload")
@@ -65,7 +68,7 @@ public class ProgramController {
                         Task task = taskOptional.get();
                         boolean allowed = task.getAllowedLanguages().stream().anyMatch(l -> Objects.equals(l.getId(), solution.getLang().getId()));
                         if (allowed) {
-                            task.startSolutionEvaluation(isolationManager, solution);
+                            evaluationService.evaluateSolution(task, solution);
                             return ResponseEntity.ok().build();
                         } else {
                             bindingResult.addError(new ObjectError("solution", "Solution language is disallowed for this task"));

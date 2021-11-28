@@ -1,16 +1,10 @@
 package org.sublux.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import org.sublux.isolation.BuildContainer;
-import org.sublux.isolation.BuildReport;
-import org.sublux.isolation.DockerException;
-import org.sublux.isolation.IsolationManager;
 import org.sublux.serialization.TaskSerializer;
 
 import javax.persistence.*;
-import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -40,7 +34,7 @@ public class Task {
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Program solution;
 
-    @OneToMany(mappedBy = "task", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "task", fetch = FetchType.LAZY)
     private List<TestCluster> clusters;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -133,19 +127,5 @@ public class Task {
 
     public void setAuthor(User author) {
         this.author = author;
-    }
-
-    public void startSolutionEvaluation(IsolationManager isolationManager, Program solution) {
-        Language lang = solution.getLang();
-        boolean allowed = getAllowedLanguages().stream().anyMatch(l -> Objects.equals(l.getId(), lang.getId()));
-        if (!allowed) throw new IllegalArgumentException("Solution language is disallowed for this task");
-        try {
-            BuildContainer buildContainer = isolationManager.createBuildContainer(lang);
-            BuildReport report = buildContainer.buildSolution(solution);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (DockerException e) {
-            e.printStackTrace();
-        }
     }
 }

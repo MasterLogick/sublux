@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.sublux.serialization.TestClusterSerializer;
 
 import javax.persistence.*;
+import javax.validation.constraints.Min;
 import java.util.List;
 
 @Entity
@@ -19,6 +20,7 @@ public class TestCluster {
     private String name;
 
     @Column(name = "memory_limit")
+    @Min(value = 6, message = "Docker container must have at least 6 MB of memory")
     private Integer memoryLimit;
 
     @Column(name = "time_limit")
