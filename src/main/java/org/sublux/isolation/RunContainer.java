@@ -33,12 +33,12 @@ public class RunContainer extends Container {
         this.logObtainTimeout = logObtainTimeout;
     }
 
-    public Report evaluateSolution(Program solution, File builtSolution, Test test) throws IOException, InterruptedException {
+    public Report evaluateSolution(BuildContainer buildContainer, Program solution, Test test) throws IOException, InterruptedException {
         if (!solution.getLang().getId().equals(language.getId())) {
             throw new IllegalArgumentException("Container prepared for another language");
         }
         prepareContext();
-        copySolution(builtSolution);
+        copySolution(buildContainer.getBuiltSolution());
         exportInput(test.getInput());
         copyRunScript(solution.getLang().getRunScript());
         startContainer();

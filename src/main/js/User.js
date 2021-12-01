@@ -1,9 +1,8 @@
 import React, {useState} from "react";
 import {Link, Redirect, Route, Switch, useHistory, useLocation} from "react-router-dom";
-import {Alert, Button, Col, Container, Form, NavDropdown, Row, Stack, Table} from "react-bootstrap";
-import {authUser, isLogged, logoutUser, registerUser, RequireAuthorized, useUser} from "./Authorization";
+import {Alert, Button, Col, Container, Form, Row, Stack, Table} from "react-bootstrap";
+import {authUser, logoutUser, registerUser, RequireAuthorized, useUser} from "./Authorization";
 
-export {UserHeaderDropdown};
 export default function User(props) {
     return (
         <Switch>
@@ -223,24 +222,4 @@ function UserLogout() {
     let user = useUser();
     logoutUser(user).catch(err => alert(err));
     return <Redirect to={"/"}/>;
-}
-
-function UserHeaderDropdown() {
-    let user = useUser();
-    if (isLogged(user))
-        return (
-            <NavDropdown id={"header-nav-menu-dropdown"} title={user.username} align={"end"}>
-                <NavDropdown.Item>
-                    <Link to={"/user/profile"} className={"nav-link bg-transparent text-dark"}>Profile</Link>
-                </NavDropdown.Item>
-                <NavDropdown.Divider/>
-                <NavDropdown.Item>
-                    <Link to={"/user/logout"} className={"nav-link bg-transparent text-dark"}>Log out</Link>
-                </NavDropdown.Item>
-            </NavDropdown>
-        );
-    else
-        return (
-            <Link to={"/user/login"} className={"nav-link"}>Log in</Link>
-        )
 }

@@ -7,15 +7,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.sublux.auth.UserDetailsImpl;
+import org.sublux.entity.EvaluationReport;
 import org.sublux.entity.Language;
 import org.sublux.entity.Program;
 import org.sublux.entity.Task;
-import org.sublux.isolation.IsolationManager;
+import org.sublux.repository.EvaluationReportRepository;
 import org.sublux.repository.LanguageRepository;
 import org.sublux.repository.TaskRepository;
 import org.sublux.service.EvaluationService;
@@ -23,22 +21,23 @@ import org.sublux.web.form.SolutionUploadDTO;
 
 import javax.validation.Valid;
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 @Controller
 @RequestMapping(path = "/api/solution")
-public class ProgramController {
+public class SolutionController {
     private final TaskRepository taskRepository;
     private final LanguageRepository languageRepository;
-    private final IsolationManager isolationManager;
     private final EvaluationService evaluationService;
+    private final EvaluationReportRepository evaluationReportRepository;
 
-    public ProgramController(TaskRepository taskRepository, LanguageRepository languageRepository, IsolationManager isolationManager, EvaluationService evaluationService) {
+    public SolutionController(TaskRepository taskRepository, LanguageRepository languageRepository, EvaluationService evaluationService, EvaluationReportRepository evaluationReportRepository) {
         this.taskRepository = taskRepository;
         this.languageRepository = languageRepository;
-        this.isolationManager = isolationManager;
         this.evaluationService = evaluationService;
+        this.evaluationReportRepository = evaluationReportRepository;
     }
 
     @PostMapping(path = "/upload")
@@ -68,7 +67,7 @@ public class ProgramController {
                         Task task = taskOptional.get();
                         boolean allowed = task.getAllowedLanguages().stream().anyMatch(l -> Objects.equals(l.getId(), solution.getLang().getId()));
                         if (allowed) {
-                            evaluationService.evaluateSolution(task, solution);
+                            evaluationService.evaluateSolution(task, solution, user);
                             return ResponseEntity.ok().build();
                         } else {
                             bindingResult.addError(new ObjectError("solution", "Solution language is disallowed for this task"));
@@ -82,6 +81,24 @@ public class ProgramController {
                     bindingResult.addError(new ObjectError("solution", "No such language found"));
                     throw new BindException(bindingResult);
                 }
+            }
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
+    @GetMapping("/getMySolutions/{id}")
+    @ResponseBody
+    public ResponseEntity<Iterable<EvaluationReport>> getMySolutions(@PathVariable Long id,
+                                                                     Authentication authentication) throws BindException {
+        if (authentication != null) {
+            if (authentication.getPrincipal() instanceof UserDetailsImpl) {
+                UserDetailsImpl user = (UserDetailsImpl) authentication.getPrincipal();
+                Optional<Task> taskOptional = taskRepository.findById(id);
+                if (!taskOptional.isPresent()) {
+                    return ResponseEntity.notFound().build();
+                }
+                List<EvaluationReport> reportList = evaluationReportRepository.findAllByTaskAndAuthor(taskOptional.get(), user);
+                return ResponseEntity.ok(reportList);
             }
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

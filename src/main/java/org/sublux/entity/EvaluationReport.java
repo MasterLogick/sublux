@@ -1,10 +1,14 @@
 package org.sublux.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.sublux.serialization.EvaluationReportSerializer;
+
 import javax.persistence.*;
 import java.util.Map;
 
 @Entity
 @Table(name = "evaluation_report")
+@JsonSerialize(using = EvaluationReportSerializer.class)
 public class EvaluationReport {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,6 +33,10 @@ public class EvaluationReport {
     @OneToOne
     @JoinColumn(name = "task_id")
     private Task task;
+
+    @ManyToOne
+    @JoinColumn(name = "author_id")
+    private User author;
 
     public Long getId() {
         return id;
@@ -68,5 +76,13 @@ public class EvaluationReport {
 
     public void setTask(Task problem) {
         this.task = problem;
+    }
+
+    public User getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(User author) {
+        this.author = author;
     }
 }

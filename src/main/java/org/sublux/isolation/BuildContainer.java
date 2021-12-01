@@ -42,7 +42,7 @@ public class BuildContainer extends Container {
         return stopAndGenerateReport();
     }
 
-    public File getBuiltSolution() {
+    File getBuiltSolution() {
         return new File(volume.getExternalMountPoint(), "/out");
     }
 

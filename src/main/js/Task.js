@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import axios from "axios";
-import {Badge, Button, Container, Form, Tab, Tabs} from "react-bootstrap";
+import {Badge, Button, Container, Form, OverlayTrigger, Popover, Tab, Table, Tabs} from "react-bootstrap";
 import {Link, Route, Switch, useHistory, useParams} from "react-router-dom";
 import {isLogged, RequireAuthorized} from "./Authorization";
 import {getProgramDTO, ProgramUploadFormGroup} from "./Program";
@@ -123,13 +123,21 @@ function TaskCreateForm() {
 
 function TaskFullView() {
     let {id} = useParams();
+    let history = useHistory();
     const [task, setTask] = useState({});
     const [srcValidationError, setSrcValidationError] = useState(null);
     const [language, setLanguage] = useState(null);
     const [src, setSrc] = useState(null);
+    const [mySolutions, setMySolutions] = useState(null);
+
     useEffect(() => {
         axios.get(`/api/task/${id}`).then(resp => {
             setTask(resp.data);
+        });
+    }, []);
+    useEffect(() => {
+        axios.get(`/api/solution/getMySolutions/${id}`).then(resp => {
+            setMySolutions(resp.data);
         });
     }, []);
 
@@ -139,11 +147,9 @@ function TaskFullView() {
                 taskId: id,
                 solution: program
             };
-            axios.post("/api/solution/upload", data).then(console.log).catch(console.log);
+            axios.post("/api/solution/upload", data).then(() => history.go(0)).catch(console.log);
         })
     }
-
-    console.log(task);
 
     return (
         <Container>
@@ -193,19 +199,121 @@ function TaskFullView() {
             <div className="d-flex justify-content-end">
                 <Button className="ms-auto" variant={"dark"} onClick={upload}>Upload</Button>
             </div>
+            <hr/>
+            <Table bordered hover striped>
+                <thead>
+                <tr>
+                    <td className="col-1">
+                        ID
+                    </td>
+                    <td className="col-2">
+                        Build
+                    </td>
+                    <td>Run</td>
+                </tr>
+                </thead>
+                <tbody>
+                {mySolutions?.map((sol, key) => (
+                    <tr key={key}>
+                        <td>{key + 1}</td>
+                        <td>{getBuildReportBadge(sol.buildReport)}</td>
+                        <td>{sol.buildReport.state === "SUCCESS" && getRunReportBadges(sol.runReports, task)}</td>
+                    </tr>
+                ))}
+                </tbody>
+            </Table>
         </Container>
     );
+}
+
+function getBuildReportBadge(buildReport) {
+    let color = "";
+    switch (buildReport.state) {
+        case "SUCCESS":
+            color = "success";
+            break;
+        case "TIME_LIMIT_EXCEEDED":
+        case "MEMORY_LIMIT_EXCEEDED":
+        case "VOLUME_QUOTA_EXCEEDED":
+        case "RUNTIME_EXCEPTION":
+        case "WRONG_ANSWER":
+            color = "danger";
+            break;
+        case "DOCKER_EXCEPTION":
+            color = "dark";
+            break;
+    }
+    return (<Badge bg={color}>{buildReport.state}</Badge>)
+}
+
+function getRunReportBadges(runReports, task) {
+    const badges = [];
+    for (const testCluster of task?.tasks) {
+        let totalSum = 0;
+        let maxSum = 0;
+        const testSet = [];
+        for (const test of testCluster?.tests) {
+            maxSum += test.points;
+            const report = getReport(runReports, test.id);
+            if (report.state === "SUCCESS") {
+                totalSum += test.points;
+            }
+            testSet.push(getRunReportBadge(report, test));
+        }
+        let bg = "";
+        if (totalSum >= maxSum) {
+            bg = "success";
+        } else if (totalSum * 2 >= maxSum) {
+            bg = "warning";
+        } else {
+            bg = "danger";
+        }
+        badges.push((
+            <OverlayTrigger placement="bottom" overlay={<Popover>
+                <Popover.Body>
+                    {testSet}
+                </Popover.Body>
+            </Popover>}>
+                <Badge bg={bg}>{`${totalSum}/${maxSum}`}</Badge>
+            </OverlayTrigger>));
+    }
+    return badges;
+}
+
+
+function getReport(runReports, id) {
+    return runReports.filter(rep => rep.testId === id)[0].report;
+}
+
+function getRunReportBadge(runReport, test) {
+    let color = "";
+    switch (runReport.state) {
+        case "SUCCESS":
+            color = "success";
+            break;
+        case "TIME_LIMIT_EXCEEDED":
+        case "MEMORY_LIMIT_EXCEEDED":
+        case "VOLUME_QUOTA_EXCEEDED":
+        case "RUNTIME_EXCEPTION":
+        case "WRONG_ANSWER":
+            color = "danger";
+            break;
+        case "DOCKER_EXCEPTION":
+            color = "dark";
+            break;
+    }
+    return (<Badge bg={color}>{`${runReport.state} (${runReport.state === "SUCCESS" ? test.points : 0}p)`}</Badge>)
 }
 
 function getMyTasks(user) {
     if (isLogged(user)) {
         return new Promise((resolve, reject) => {
-                let unusedTasks = [];
+            let unusedTasks = [];
 
-                function fetch(currentPage, perPage, total) {
-                    axios.get("/api/task/getMy", {
-                        params: {
-                            page: currentPage,
+            function fetch(currentPage, perPage, total) {
+                axios.get("/api/task/getMy", {
+                    params: {
+                        page: currentPage,
                             perPage: perPage
                         }
                     }).then(resp => {

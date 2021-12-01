@@ -11,6 +11,7 @@ public class TestSerializer extends JsonSerializer<Test> {
     @Override
     public void serialize(Test value, JsonGenerator generator, SerializerProvider serializers) throws IOException {
         generator.writeStartObject();
+        generator.writeNumberField("id", value.getId());
         generator.writeNumberField("points", value.getPoints());
         generator.writeEndObject();
     }

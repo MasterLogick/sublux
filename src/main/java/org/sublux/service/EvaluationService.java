@@ -24,10 +24,12 @@ public class EvaluationService {
         this.evaluationReportRepository = evaluationReportRepository;
     }
 
-    public void evaluateSolution(Task task, Program solution) {
+    public void evaluateSolution(Task task, Program solution, User user) {
         Language lang = solution.getLang();
         boolean allowed = task.getAllowedLanguages().stream().anyMatch(l -> Objects.equals(l.getId(), lang.getId()));
         if (!allowed) throw new IllegalArgumentException("Solution language is disallowed for this task");
+        if (!solution.getAuthor().getId().equals(user.getId()))
+            throw new IllegalArgumentException("Solution author differs from provided user");
         List<TestCluster> clusterList = task.getClusters();
         for (TestCluster testCluster : clusterList) {
             Hibernate.initialize(testCluster.getTests());
@@ -36,6 +38,7 @@ public class EvaluationService {
             EvaluationReport evaluationReport = new EvaluationReport();
             evaluationReport.setTask(task);
             evaluationReport.setEvaluatedProgram(solution);
+            evaluationReport.setAuthor(user);
             BuildContainer buildContainer = null;
             try {
                 buildContainer = isolationManager.createBuildContainer(lang);
@@ -69,7 +72,7 @@ public class EvaluationService {
                             for (Test test : cluster.getTests()) {
                                 Report runReport = null;
                                 try {
-                                    runReport = runContainer.evaluateSolution(solution, buildContainer.getBuiltSolution(), test);
+                                    runReport = runContainer.evaluateSolution(buildContainer, solution, test);
                                 } catch (IOException | InterruptedException e) {
                                     e.printStackTrace();
                                     runReports.put(test, createFailedContainerCreateReport());
