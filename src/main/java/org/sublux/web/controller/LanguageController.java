@@ -15,8 +15,11 @@ import org.sublux.serialization.LanguageLong;
 import org.sublux.service.LanguageService;
 import org.sublux.web.form.LanguageCreateDTO;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
+import java.io.IOException;
+import java.util.Optional;
 
 @Controller
 @RequestMapping(path = "/api/language")
@@ -33,6 +36,20 @@ public class LanguageController {
     @ResponseBody
     public ResponseEntity<LanguageLong> getLang(@PathVariable Integer id) {
         return languageRepository.findById(id).map(LanguageLong::new).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping(path = "/getDockerTar/{id}")
+    public void getDockerTar(@PathVariable Integer id, HttpServletResponse response) throws IOException {
+        response.setContentType("application/x-gtar");
+        Optional<Language> optionalLanguage = languageRepository.findById(id);
+        if (optionalLanguage.isPresent()) {
+            response.setHeader("Content-Disposition", "attachment; filename=\"sublux-" + optionalLanguage.get().getName() + ".tar.xz\"");
+            response.getOutputStream().write(optionalLanguage.get().getDockerTar());
+            response.setStatus(HttpServletResponse.SC_OK);
+        } else {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        }
+        response.flushBuffer();
     }
 
     @PostMapping(path = "/create")

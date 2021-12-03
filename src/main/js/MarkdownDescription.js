@@ -27,6 +27,7 @@ const MarkdownDescription = (props) => {
                             style={style}
                             language={match[1]}
                             PreTag="div"
+                            className={"border rounded-2 " + (className || "")}
                             {...props}
                         />
                     ) : <code
