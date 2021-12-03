@@ -7,7 +7,7 @@
     "h": "webpack help watch",
     "watch": "webpack watch",
     "build": "webpack --mode production",
-    "analyze": "source-map-explorer ./target/classes/static/js/index.bundle.js"
+    "analyze": "source-map-explorer ./target/classes/static/app/index.bundle.js"
   },
   "repository": {
     "type": "git",

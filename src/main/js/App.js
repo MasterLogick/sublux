@@ -1,13 +1,13 @@
 import React, {useEffect} from "react";
 import {BrowserRouter, Redirect, Route, Switch} from "react-router-dom";
 import Header from "./Header";
-import Contest from "./Contest";
-import Task from "./Task";
-import User from "./User";
+import ContestRouter from "./contest/ContestRouter";
+import TaskRouter from "./task/TaskRouter";
+import UserRouter from "./user/UserRouter";
 import Footer from "./Footer";
 import {tryGetCredentials, UserProvider, useUser} from "./Authorization";
 import {CookiesProvider} from "react-cookie";
-import Language from "./Language";
+import LanguageRouter from "./language/LanguageRouter";
 
 export default () => (<CookiesProvider><UserProvider><App/></UserProvider></CookiesProvider>);
 
@@ -20,10 +20,10 @@ function App() {
                 <Header/>
                 <div className="pt-3 pb-3">
                     <Switch>
-                        <Route path="/contest/" component={Contest}/>
-                        <Route path="/task/" component={Task}/>
-                        <Route path="/user/" component={User}/>
-                        <Route path="/language/" component={Language}/>
+                        <Route path="/contest/" component={ContestRouter}/>
+                        <Route path="/task/" component={TaskRouter}/>
+                        <Route path="/user/" component={UserRouter}/>
+                        <Route path="/language/" component={LanguageRouter}/>
                         <Route><Redirect to={"/contest/"}/></Route>
                     </Switch>
                 </div>

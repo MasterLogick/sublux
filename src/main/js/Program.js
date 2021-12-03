@@ -1,7 +1,7 @@
 import React from "react";
 import {Form} from "react-bootstrap";
 import {RequireAuthorized} from "./Authorization";
-import {LanguageSelector} from "./Language";
+import LanguageSelector from "./language/LanguageSelector";
 import {fileToBase64File} from "./Utill";
 
 export {ProgramUploadFormGroup, getProgramDTO};
