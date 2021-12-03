@@ -30,7 +30,7 @@ public class BuildContainer extends Container {
         this.buildTimeout = buildTimeout;
     }
 
-    public Report buildSolution(Program solution) throws IOException, InterruptedException {
+    public void buildSolution(Program solution, Report report) throws IOException, InterruptedException {
         if (!solution.getLang().getId().equals(language.getId())) {
             throw new IllegalArgumentException("Container prepared for another language");
         }
@@ -39,7 +39,7 @@ public class BuildContainer extends Container {
         copyBuildScript(solution.getLang().getBuildScript());
         startContainer();
         await(buildTimeout, TimeUnit.MILLISECONDS);
-        return stopAndGenerateReport();
+        stopAndGenerateReport(report);
     }
 
     File getBuiltSolution() {

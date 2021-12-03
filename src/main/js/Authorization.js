@@ -1,6 +1,6 @@
 import React, {useContext, useState} from "react";
 import axios from "axios";
-import {Redirect, useLocation} from "react-router-dom";
+import {Redirect} from "react-router-dom";
 import {useCookies} from "react-cookie";
 
 export {UserProvider, useUser, tryGetCredentials, authUser, RequireAuthorized, isLogged, logoutUser, registerUser}
@@ -9,14 +9,8 @@ const UserContext = React.createContext({});
 
 function RequireAuthorized() {
     let user = useUser();
-    let location = useLocation();
     if (!isLogged(user)) {
-        return <Redirect to={{
-            pathname: "/user/login",
-            state: {
-                redirect: location
-            }
-        }}/>
+        return <Redirect to={"/user/login"}/>
     } else {
         return null;
     }

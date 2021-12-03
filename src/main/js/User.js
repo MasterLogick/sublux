@@ -69,7 +69,7 @@ function UserRegister() {
         setPasswordRepetitionValidationError(null);
 
         registerUser(username.current.value, mail.current.value, password.current.value, passwordRepetition.current.value)
-            .then(() => history.push("/user/login"))
+            .then(() => history.goBack())
             .catch(errors => {
                 for (const validationError of errors) {
                     switch (validationError.objectName) {
@@ -162,8 +162,7 @@ function UserLogin() {
             return;
         }
         authUser(user, username.current.value, password.current.value).then(() => {
-            let {redirect} = location.state || {redirect: {pathname: "/context"}};
-            history.replace(redirect);
+            history.goBack();
         }).catch((err) => {
             setBadCredentials(true);
             if (typeof err === "string" || err instanceof String) {
@@ -179,11 +178,8 @@ function UserLogin() {
         <Container>
             <Form noValidate validated={validated} onSubmit={onSubmit}>
                 {(() => {
-                    if (badCredentials) {
+                    if (badCredentials)
                         return <Alert variant={"danger"}>{reason}</Alert>;
-                    } else {
-                        return <></>;
-                    }
                 })()}
                 <Form.Group className="mb-3" as={Col} controlId="formUsername">
                     <Form.Label>Username</Form.Label>
@@ -220,6 +216,7 @@ function UserRecoveryPassword() {
 
 function UserLogout() {
     let user = useUser();
-    logoutUser(user).catch(err => alert(err));
-    return <Redirect to={"/"}/>;
+    let history = useHistory();
+    logoutUser(user).then(() => history.goBack()).catch(err => alert(err));
+    return null;
 }

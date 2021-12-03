@@ -76,7 +76,7 @@ function TestClusterEditor(props) {
         <>
             <Form.Group as={Row} className="my-3" controlId="formTimeLimit">
                 <Form.Label column sm={2}>Time limit</Form.Label>
-                <Col sm={2}>
+                <Col sm={3}>
                     <InputGroup>
                         <Form.Control type="text" placeholder="Enter time limit" name="timeLimit"
                                       ref={timeLimitRef}/>
@@ -86,7 +86,7 @@ function TestClusterEditor(props) {
             </Form.Group>
             <Form.Group as={Row} className="my-3" controlId="formMemoryLimit">
                 <Form.Label column sm={2}>Memory limit</Form.Label>
-                <Col sm={2}>
+                <Col sm={3}>
                     <InputGroup>
                         <Form.Control type="text" placeholder="Enter memory limit" name="memoryLimit"
                                       ref={memoryLimitRef}/>

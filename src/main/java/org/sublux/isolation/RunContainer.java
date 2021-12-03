@@ -23,17 +23,15 @@ public class RunContainer extends Container {
     private final Language language;
     private final MountedVolume volume;
     private final int runTimeout;
-    private final int logObtainTimeout;
 
     public RunContainer(Language language, MountedVolume volume, String id, int runTimeout, int logObtainTimeout, DockerClient client) {
         super(id, client, logObtainTimeout);
         this.language = language;
         this.volume = volume;
         this.runTimeout = runTimeout;
-        this.logObtainTimeout = logObtainTimeout;
     }
 
-    public Report evaluateSolution(BuildContainer buildContainer, Program solution, Test test) throws IOException, InterruptedException {
+    public void evaluateSolution(BuildContainer buildContainer, Program solution, Test test, Report report) throws IOException, InterruptedException {
         if (!solution.getLang().getId().equals(language.getId())) {
             throw new IllegalArgumentException("Container prepared for another language");
         }
@@ -43,14 +41,13 @@ public class RunContainer extends Container {
         copyRunScript(solution.getLang().getRunScript());
         startContainer();
         await(runTimeout, TimeUnit.MILLISECONDS);
-        Report report = stopAndGenerateReport();
+        stopAndGenerateReport(report);
         if (report.getState() == Report.State.SUCCESS) {
             byte[] result = importOutput();
             if (!Arrays.equals(result, test.getOutput())) {
                 report.setState(Report.State.WRONG_ANSWER);
             }
         }
-        return report;
     }
 
     private byte[] importOutput() throws IOException {

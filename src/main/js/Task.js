@@ -1,11 +1,12 @@
 import React, {useEffect, useState} from "react";
 import axios from "axios";
-import {Badge, Button, Container, Form, OverlayTrigger, Popover, Tab, Table, Tabs} from "react-bootstrap";
+import {Badge, Button, Container, Form, OverlayTrigger, Popover, Stack, Tab, Table, Tabs} from "react-bootstrap";
 import {Link, Route, Switch, useHistory, useParams} from "react-router-dom";
-import {isLogged, RequireAuthorized} from "./Authorization";
+import {isLogged, RequireAuthorized, useUser} from "./Authorization";
 import {getProgramDTO, ProgramUploadFormGroup} from "./Program";
 import {LanguageSelector} from "./Language";
 import {getTestsDTO, TestsEditor} from "./Test";
+import {MarkdownDescription} from "./MarkdownDescription";
 
 export {getMyTasks};
 
@@ -129,6 +130,7 @@ function TaskFullView() {
     const [language, setLanguage] = useState(null);
     const [src, setSrc] = useState(null);
     const [mySolutions, setMySolutions] = useState(null);
+    const isUserLogged = isLogged(useUser());
 
     useEffect(() => {
         axios.get(`/api/task/${id}`).then(resp => {
@@ -136,9 +138,10 @@ function TaskFullView() {
         });
     }, []);
     useEffect(() => {
-        axios.get(`/api/solution/getMySolutions/${id}`).then(resp => {
-            setMySolutions(resp.data);
-        });
+        if (isUserLogged)
+            axios.get(`/api/solution/getMySolutions/${id}`).then(resp => {
+                setMySolutions(resp.data);
+            });
     }, []);
 
     function upload() {
@@ -159,20 +162,20 @@ function TaskFullView() {
                               className={"text-secondary"}>{task.author?.username}</Link>
             </div>
             <hr/>
-            <div className={"mb-1"}>
+            <h5>Description</h5>
+            <p><MarkdownDescription>{task.description}</MarkdownDescription></p>
+            <hr/>
+            <h5>Tests</h5>
+            <div className={"my-1"}>
                 Average time
                 limit: <Badge
                 bg={"secondary"}>{task.tasks?.map(cluster => cluster.timeLimit).reduce((a, b) => a + b, 0) / task.tasks?.length} ms</Badge>
             </div>
-            <div>
+            <div className={"my-1"}>
                 Average memory
                 limit: <Badge
                 bg={"secondary"}>{task.tasks?.map(cluster => cluster.memoryLimit).reduce((a, b) => a + b, 0) / task.tasks?.length} MB</Badge>
             </div>
-            <p/>
-            <p>{task.description}</p>
-            <hr/>
-            <h5>Tests</h5>
             <Tabs>
                 {task.tasks?.map((c, key) => (<Tab key={key} title={c.name} eventKey={key}>
                     <div className={"my-1"}>
@@ -187,41 +190,50 @@ function TaskFullView() {
                     </div>
                     <div className={"d-flex justify-content-start overflow-scroll"}>
                         {c.tests.map((t, i) => (
-                            <h5 className={"mx-1"}><Badge key={i} bg={"warning"}>{t.points}p</Badge></h5>
+                            <h5 className={"mx-1"} key={i}><Badge bg={"warning"}>{t.points}p</Badge></h5>
                         ))}
                     </div>
                 </Tab>))}
             </Tabs>
-            <hr/>
-            <ProgramUploadFormGroup className="mb-3" name="upload"
-                                    isSrcInvalid={srcValidationError != null}
-                                    onSrcChange={setSrc} language={language} onLangChange={setLanguage}/>
-            <div className="d-flex justify-content-end">
-                <Button className="ms-auto" variant={"dark"} onClick={upload}>Upload</Button>
-            </div>
-            <hr/>
-            <Table bordered hover striped>
-                <thead>
-                <tr>
-                    <td className="col-1">
-                        ID
-                    </td>
-                    <td className="col-2">
-                        Build
-                    </td>
-                    <td>Run</td>
-                </tr>
-                </thead>
-                <tbody>
-                {mySolutions?.map((sol, key) => (
-                    <tr key={key}>
-                        <td>{key + 1}</td>
-                        <td>{getBuildReportBadge(sol.buildReport)}</td>
-                        <td>{sol.buildReport.state === "SUCCESS" && getRunReportBadges(sol.runReports, task)}</td>
-                    </tr>
-                ))}
-                </tbody>
-            </Table>
+            <hr className="mt-0"/>
+            {isUserLogged ?
+                <>
+                    <ProgramUploadFormGroup className="mb-3" name="upload"
+                                            isSrcInvalid={srcValidationError != null}
+                                            onSrcChange={setSrc} language={language} onLangChange={setLanguage}/>
+                    <div className="d-flex justify-content-end">
+                        <Button className="ms-auto" variant={"dark"} onClick={upload}>Upload</Button>
+                    </div>
+                    <hr/>
+                    <Table bordered hover striped>
+                        <thead>
+                        <tr>
+                            <td className="col-1">
+                                ID
+                            </td>
+                            <td className="col-2">
+                                Build
+                            </td>
+                            <td>Run</td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {mySolutions?.map((sol, key) => (
+                            <tr key={key}>
+                                <td>{key + 1}</td>
+                                <td>{getBuildReportBadge(sol.buildReport)}</td>
+                                <td>{sol.buildReport.state === "SUCCESS" && getRunReportBadges(sol.runReports, task)}</td>
+                            </tr>
+                        )).reverse()}
+                        </tbody>
+                    </Table>
+                </> :
+                <>
+                    <h5>
+                        <Link to="/user/login">Log in</Link> to send your solution
+                    </h5>
+                </>
+            }
         </Container>
     );
 }
@@ -231,6 +243,9 @@ function getBuildReportBadge(buildReport) {
     switch (buildReport.state) {
         case "SUCCESS":
             color = "success";
+            break;
+        case "PENDING":
+            color = "info";
             break;
         case "TIME_LIMIT_EXCEEDED":
         case "MEMORY_LIMIT_EXCEEDED":
@@ -252,15 +267,20 @@ function getRunReportBadges(runReports, task) {
         let totalSum = 0;
         let maxSum = 0;
         const testSet = [];
+        let pending = 0;
         for (const test of testCluster?.tests) {
             maxSum += test.points;
             const report = getReport(runReports, test.id);
-            if (report.state === "SUCCESS") {
+            if (report?.state === "SUCCESS") {
                 totalSum += test.points;
+            }
+            if (report === undefined) {
+                pending++;
             }
             testSet.push(getRunReportBadge(report, test));
         }
         let bg = "";
+        let label = `${totalSum}/${maxSum}`;
         if (totalSum >= maxSum) {
             bg = "success";
         } else if (totalSum * 2 >= maxSum) {
@@ -268,13 +288,21 @@ function getRunReportBadges(runReports, task) {
         } else {
             bg = "danger";
         }
+        if (pending > 0) {
+            bg = "info";
+            label = "PENDING";
+        }
         badges.push((
-            <OverlayTrigger placement="bottom" overlay={<Popover>
-                <Popover.Body>
-                    {testSet}
-                </Popover.Body>
-            </Popover>}>
-                <Badge bg={bg}>{`${totalSum}/${maxSum}`}</Badge>
+            <OverlayTrigger placement="bottom" overlay={
+                <Popover>
+                    <Popover.Body>
+                        <Stack gap={2}>
+                            {testSet}
+                        </Stack>
+                    </Popover.Body>
+                </Popover>
+            }>
+                <Badge bg={bg}>{testCluster.name + ": " + label}</Badge>
             </OverlayTrigger>));
     }
     return badges;
@@ -282,10 +310,11 @@ function getRunReportBadges(runReports, task) {
 
 
 function getReport(runReports, id) {
-    return runReports.filter(rep => rep.testId === id)[0].report;
+    return runReports.filter(rep => rep.testId === id)[0]?.report;
 }
 
 function getRunReportBadge(runReport, test) {
+    if (runReport === undefined) return (<Badge bg="info">{`PENDING (?/${test.points})`}</Badge>);
     let color = "";
     switch (runReport.state) {
         case "SUCCESS":
@@ -298,11 +327,15 @@ function getRunReportBadge(runReport, test) {
         case "WRONG_ANSWER":
             color = "danger";
             break;
-        case "DOCKER_EXCEPTION":
+        default:
             color = "dark";
             break;
     }
-    return (<Badge bg={color}>{`${runReport.state} (${runReport.state === "SUCCESS" ? test.points : 0}p)`}</Badge>)
+    return (
+        <Badge bg={color}>
+            {`${runReport.state} (${runReport.state === "SUCCESS" ? test.points : 0}/${test.points})`}
+        </Badge>
+    )
 }
 
 function getMyTasks(user) {
@@ -314,16 +347,16 @@ function getMyTasks(user) {
                 axios.get("/api/task/getMy", {
                     params: {
                         page: currentPage,
-                            perPage: perPage
+                        perPage: perPage
+                    }
+                }).then(resp => {
+                        unusedTasks = unusedTasks.concat(resp.data.content);
+                        total = resp.data.totalElements;
+                        if (total > (currentPage + 1) * perPage) {
+                            fetch(currentPage + 1, perPage, total);
+                        } else {
+                            resolve(unusedTasks);
                         }
-                    }).then(resp => {
-                            unusedTasks = unusedTasks.concat(resp.data.content);
-                            total = resp.data.totalElements;
-                            if (total > (currentPage + 1) * perPage) {
-                                fetch(currentPage + 1, perPage, total);
-                            } else {
-                                resolve(unusedTasks);
-                            }
                         }
                     ).catch(reject);
                 }

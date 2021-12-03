@@ -29,8 +29,7 @@ public class Container implements Closeable {
         return id;
     }
 
-    protected Report stopAndGenerateReport() throws InterruptedException, IOException {
-        Report report = new Report();
+    protected void stopAndGenerateReport(Report report) throws InterruptedException, IOException {
         report.setState(Report.State.SUCCESS);
         InspectContainerResponse inspection = client.inspectContainerCmd(getId()).exec();
         if (!inspection.getState().getStatus().equals("exited")) {
@@ -73,7 +72,6 @@ public class Container implements Closeable {
         callback.awaitCompletion(logObtainTimeout, TimeUnit.MILLISECONDS);
         deflaterOutputStream.close();
         report.setCompressedLog(compressedLog.toByteArray());
-        return report;
     }
 
     protected void startContainer() {

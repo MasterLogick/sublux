@@ -104,7 +104,7 @@ public class IsolationManager {
                 .withName("sublux-run-container-" + language.getId() + "-" + testCluster.getId() + "-" + System.currentTimeMillis())
                 .withNetworkDisabled(true)
                 .exec();
-        return new RunContainer(language, volume, ccr.getId(), solutionBuildTimeout, logObtainTimeout, dockerClient);
+        return new RunContainer(language, volume, ccr.getId(), testCluster.getTimeLimit(), logObtainTimeout, dockerClient);
     }
 
     public void validateLanguageImage(LanguageImage image) {

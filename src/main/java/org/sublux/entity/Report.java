@@ -21,6 +21,13 @@ public class Report {
     @Column(name = "compressed_log")
     private byte[] compressedLog;
 
+    public Report() {
+    }
+
+    public Report(State state) {
+        this.state = state;
+    }
+
     public Long getId() {
         return id;
     }
@@ -46,6 +53,6 @@ public class Report {
     }
 
     public enum State {
-        SUCCESS, TIME_LIMIT_EXCEEDED, MEMORY_LIMIT_EXCEEDED, VOLUME_QUOTA_EXCEEDED, RUNTIME_EXCEPTION, DOCKER_EXCEPTION, WRONG_ANSWER
+        SUCCESS, TIME_LIMIT_EXCEEDED, MEMORY_LIMIT_EXCEEDED, VOLUME_QUOTA_EXCEEDED, RUNTIME_EXCEPTION, DOCKER_EXCEPTION, WRONG_ANSWER, PENDING
     }
 }

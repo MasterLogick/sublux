@@ -19,6 +19,7 @@ public class Task {
     @Column(name = "name")
     private String name;
 
+    @Lob
     @Column(name = "description")
     private String description;
 
@@ -34,7 +35,7 @@ public class Task {
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Program solution;
 
-    @OneToMany(mappedBy = "task", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "task", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<TestCluster> clusters;
 
     @ManyToOne(fetch = FetchType.LAZY)
