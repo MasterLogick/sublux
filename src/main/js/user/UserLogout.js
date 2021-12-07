@@ -1,11 +1,11 @@
 import {isLogged, logoutUser, useUser} from "../Authorization";
-import {useHistory} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 
 export default function UserLogout() {
     let user = useUser();
-    let history = useHistory();
+    let navigate = useNavigate();
     if (isLogged(user)) {
-        logoutUser(user).then(() => history.goBack()).catch(console.log);
+        logoutUser(user).then(() => navigate(-1)).catch(console.log);
     }
     return null;
 }

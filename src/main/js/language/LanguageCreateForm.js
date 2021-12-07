@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {Link, useHistory} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import axios from "axios";
 import {Button, Container, Form} from "react-bootstrap";
 import {RequireAuthorized} from "../Authorization";
@@ -14,7 +14,7 @@ export default function LanguageCreateForm() {
     const [buildScriptValidationError, setBuildScriptValidationError] = useState(null);
     const [runScriptValidationError, setRunScriptValidationError] = useState(null);
 
-    let history = useHistory();
+    let navigate = useNavigate();
 
     function onSubmit(event) {
         event.preventDefault();
@@ -42,7 +42,7 @@ export default function LanguageCreateForm() {
         form.append("dockerTar", dockerTar.current.files[0]);
         form.append("buildScript", buildScript.current.files[0]);
         form.append("runScript", runScript.current.files[0]);
-        axios.post("/api/language/create", form).then(() => history.push("/language")).catch(err => {
+        axios.post("/api/language/create", form).then(() => navigate("/language")).catch(err => {
             for (const error of err.response.data.errorList) {
                 switch (error.objectName) {
                     case "name":

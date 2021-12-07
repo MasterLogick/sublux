@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {Link, useHistory} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {authUser, useUser} from "../Authorization";
 import {Alert, Button, Col, Container, Form, Row, Stack} from "react-bootstrap";
 
@@ -12,7 +12,7 @@ export default function UserLogin() {
     const [usernameInvalid, setUsernameInvalid] = useState(false);
     const [passwordInvalid, setPasswordInvalid] = useState(false);
 
-    let history = useHistory();
+    let navigate = useNavigate();
     let user = useUser();
 
     function onSubmit(event) {
@@ -36,7 +36,7 @@ export default function UserLogin() {
             return;
         }
         authUser(user, username.current.value, password.current.value).then(() => {
-            history.goBack();
+            navigate(-1);
         }).catch((err) => {
             setBadCredentials(true);
             if (typeof err === "string" || err instanceof String) {

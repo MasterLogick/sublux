@@ -1,5 +1,5 @@
 import React, {Suspense} from "react";
-import {Redirect, Route, Switch} from "react-router-dom";
+import {Navigate, Route, Routes} from "react-router-dom";
 
 const UserProfile = React.lazy(() => import("./UserProfile"));
 const UserRegister = React.lazy(() => import("./UserRegister"));
@@ -7,27 +7,22 @@ const UserLogin = React.lazy(() => import("./UserLogin"));
 const UserRecoveryPassword = React.lazy(() => import("./UserRecoveryPassword"));
 const UserLogout = React.lazy(() => import("./UserLogout"));
 
-export default function UserRouter(props) {
+export default function UserRouter() {
     return (
         <Suspense fallback={null}>
-            <Switch>
-                <Route path={`${props.match.path}profile`} exact
-                       component={UserProfile}/>
+            <Routes>
+                <Route path="profile" element={<UserProfile/>}/>
 
-                <Route path={`${props.match.path}register`} exact
-                       component={UserRegister}/>
+                <Route path="register" element={<UserRegister/>}/>
 
-                <Route path={`${props.match.path}login`} exact
-                       component={UserLogin}/>
+                <Route path="login" element={<UserLogin/>}/>
 
-                <Route path={`${props.match.path}recovery`} exact
-                       component={UserRecoveryPassword}/>
+                <Route path="recovery" element={<UserRecoveryPassword/>}/>
 
-                <Route path={`${props.match.path}logout`} exact
-                       component={UserLogout}/>
+                <Route path="logout" element={<UserLogout/>}/>
 
-                <Route><Redirect to={"/"}/></Route>
-            </Switch>
+                <Route element={<Navigate to="/"/>}/>
+            </Routes>
         </Suspense>
     );
 }

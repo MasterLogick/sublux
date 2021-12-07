@@ -1,17 +1,16 @@
 import React, {Suspense} from "react";
-import {Redirect, Route, Switch} from "react-router-dom";
+import {Navigate, Route, Routes} from "react-router-dom";
 
 const ReportInfo = React.lazy(() => import("./ReportInfo"));
 
-export default function ReportRouter(props) {
+export default function ReportRouter() {
     return (
         <Suspense fallback={null}>
-            <Switch>
-                <Route path={`${props.match.path}:id`}
-                       component={ReportInfo}/>
+            <Routes>
+                <Route path=":id" element={<ReportInfo/>}/>
 
-                <Route><Redirect to={"/"}/></Route>
-            </Switch>
+                <Route element={<Navigate to="/"/>}/>
+            </Routes>
         </Suspense>
     );
 }

@@ -1,24 +1,21 @@
 import React, {Suspense} from "react";
-import {Redirect, Route, Switch} from "react-router-dom";
+import {Navigate, Route, Routes} from "react-router-dom";
 
 const ContestList = React.lazy(() => import("./ContestList"));
 const ContestCreateForm = React.lazy(() => import("./ContestCreateForm"));
 const ContestInfo = React.lazy(() => import("./ContestInfo"));
 
-export default function ContestRouter(props) {
+export default function ContestRouter() {
     return (
         <Suspense fallback={null}>
-            <Switch>
-                <Route path={`${props.match.path}`} exact
-                       component={ContestList}/>
+            <Routes>
+                <Route path="/" element={<ContestList/>}/>
 
-                <Route path={`${props.match.path}create`} exact
-                       component={ContestCreateForm}/>
+                <Route path="create" element={<ContestCreateForm/>}/>
 
-                <Route path={`${props.match.path}:id`}
-                       component={ContestInfo}/>
+                <Route path=":id" element={<ContestInfo/>}/>
 
-                <Route><Redirect to={"/"}/></Route>
-            </Switch>
+                <Route element={<Navigate to="/"/>}/>
+            </Routes>
         </Suspense>);
 }

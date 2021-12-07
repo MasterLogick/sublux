@@ -1,25 +1,22 @@
 import React, {Suspense} from "react";
-import {Redirect, Route, Switch} from "react-router-dom";
+import {Navigate, Route, Routes} from "react-router-dom";
 
 const LanguageCreateForm = React.lazy(() => import("./LanguageCreateForm"))
 const LanguageList = React.lazy(() => import("./LanguageList"))
 const LanguageInfo = React.lazy(() => import("./LanguageInfo"))
 
-export default function LanguageRouter(props) {
+export default function LanguageRouter() {
     return (
         <Suspense fallback={null}>
-            <Switch>
-                <Route path={`${props.match.path}create`} exact
-                       component={LanguageCreateForm}/>
+            <Routes>
+                <Route path="/" element={<LanguageList/>}/>
 
-                <Route path={`${props.match.path}`} exact
-                       component={LanguageList}/>
+                <Route path="create" element={<LanguageCreateForm/>}/>
 
-                <Route path={`${props.match.path}:id`}
-                       component={LanguageInfo}/>
+                <Route path=":id" element={<LanguageInfo/>}/>
 
-                <Route><Redirect to={"/"}/></Route>
-            </Switch>
+                <Route element={<Navigate to="/"/>}/>
+            </Routes>
         </Suspense>
     );
 }

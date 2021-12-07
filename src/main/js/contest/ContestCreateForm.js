@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {Link, useHistory} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {RequireAuthorized, useUser} from "../Authorization";
 import getMyTasks from "../task/GetMyTasks";
 import axios from "axios";
@@ -13,8 +13,7 @@ export default function ContestCreateForm() {
 
     let name = React.createRef();
     let description = React.createRef();
-    let addTask = React.createRef();
-    let history = useHistory();
+    let navigate = useNavigate();
     let user = useUser();
     const [nameValidationError, setNameValidationError] = useState(null);
     const [descriptionValidationError, setDescriptionValidationError] = useState(null);
@@ -39,7 +38,7 @@ export default function ContestCreateForm() {
             name: name.current.value,
             description: description.current.value,
             taskIds: selectedTasks.map(task => task.task.id)
-        }).then(() => history.push("/")).catch(err => {
+        }).then(() => navigate("/")).catch(err => {
             for (const error of err.response.data.errorList) {
                 switch (error.objectName) {
                     case "name":

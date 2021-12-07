@@ -1,21 +1,19 @@
 import React, {Suspense} from "react";
-import {Redirect, Route, Switch} from "react-router-dom";
+import {Navigate, Route, Routes} from "react-router-dom";
 
 const TaskCreateForm = React.lazy(() => import("./TaskCreateForm"));
 const TaskInfo = React.lazy(() => import("./TaskInfo"));
 
-export default function TaskRouter(props) {
+export default function TaskRouter() {
     return (
         <Suspense fallback={null}>
-            <Switch>
-                <Route path={`${props.match.path}create`} exact
-                       component={TaskCreateForm}/>
+            <Routes>
+                <Route path="create" element={<TaskCreateForm/>}/>
 
-                <Route path={`${props.match.path}:id`}
-                       component={TaskInfo}/>
+                <Route path=":id" element={<TaskInfo/>}/>
 
-                <Route><Redirect to={"/"}/></Route>
-            </Switch>
+                <Route element={<Navigate to="/"/>}/>
+            </Routes>
         </Suspense>
     );
 }

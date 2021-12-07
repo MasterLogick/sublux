@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {useHistory} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import {getProgramDTO, ProgramUploadFormGroup} from "../Program";
 import {getTestsDTO, TestsEditor} from "../Test";
 import axios from "axios";
@@ -21,7 +21,7 @@ export default function TaskCreateForm() {
     const [solutionSrc, setSolutionSrc] = useState(null);
     const [solutionLanguage, setSolutionLanguage] = useState(null);
 
-    let history = useHistory();
+    let navigate = useNavigate();
 
     function onSubmit(event) {
         event.preventDefault();
@@ -61,7 +61,7 @@ export default function TaskCreateForm() {
                     }
                     axios.post("/api/task/create", JSON.stringify(data), {
                         headers: {"Content-Type": "application/json"}
-                    }).then(() => history.push("/")).catch(err => {
+                    }).then(() => navigate("/")).catch(err => {
                         err.response.data;
                     });
                 });

@@ -1,4 +1,4 @@
-import {Link, useHistory, useParams} from "react-router-dom";
+import {Link, useNavigate, useParams} from "react-router-dom";
 import React, {useEffect, useState} from "react";
 import {isLogged, useUser} from "../Authorization";
 import axios from "axios";
@@ -11,7 +11,7 @@ import {getReport} from "../report/ReportBadgeUtil";
 
 export default function TaskInfo() {
     let {id} = useParams();
-    let history = useHistory();
+    let navigate = useNavigate();
     const [task, setTask] = useState({});
     const [srcValidationError, setSrcValidationError] = useState(null);
     const [language, setLanguage] = useState(null);
@@ -37,7 +37,7 @@ export default function TaskInfo() {
                 taskId: id,
                 solution: program
             };
-            axios.post("/api/solution/upload", data).then(() => history.go(0)).catch(console.log);
+            axios.post("/api/solution/upload", data).then(() => navigate(0)).catch(console.log);
         })
     }
 

@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {useHistory} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import {registerUser} from "../Authorization";
 import {Alert, Button, Container, Form} from "react-bootstrap";
 
@@ -8,7 +8,7 @@ export default function UserRegister() {
     let mail = React.createRef();
     let password = React.createRef();
     let passwordRepetition = React.createRef();
-    let history = useHistory();
+    let navigate = useNavigate();
     let [globalValidationErrors, setGlobalValidationErrors] = useState([]);
     const [usernameValidationError, setUsernameValidationError] = useState(null);
     const [mailValidationError, setMailValidationError] = useState(null);
@@ -26,7 +26,7 @@ export default function UserRegister() {
         setPasswordRepetitionValidationError(null);
 
         registerUser(username.current.value, mail.current.value, password.current.value, passwordRepetition.current.value)
-            .then(() => history.goBack())
+            .then(() => navigate(-1))
             .catch(errors => {
                 for (const validationError of errors) {
                     switch (validationError.objectName) {
