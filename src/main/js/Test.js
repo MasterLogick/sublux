@@ -7,143 +7,12 @@ import {DropTextArea} from "./DropTextArea";
 
 export {TestsEditor, getTestsDTO};
 
-function getTestsDTO(testClusters) {
-    return Promise.all(testClusters.map(getClusterDTO));
-}
-
-function getClusterDTO(cluster) {
-    return new Promise((resolve, reject) => {
-        Promise.all(cluster.tests.map(getTestDTO)).then(tests => {
-            resolve({
-                name: cluster.name,
-                timeLimit: cluster.timeLimitRef.current.value,
-                memoryLimit: cluster.memoryLimitRef.current.value,
-                tests: tests
-            });
-        }).catch(reject);
-    });
-}
-
-function getTestDTO(test) {
-    return new Promise((resolve, reject) => {
-        let input, output, points = test.points;
-        if (test.inputFile != null) {
-            input = fileToBase64File(test.inputFile);
-        } else {
-            input = Promise.resolve({data: stringToBase64(test.inputText)});
-        }
-        if (test.outputFile != null) {
-            output = fileToBase64File(test.outputFile);
-        } else {
-            output = Promise.resolve({data: stringToBase64(test.outputText)});
-        }
-        input.then(inp => {
-            output.then(out => {
-                resolve({points: points, input: inp.data, output: out.data});
-            })
-        }).catch(reject);
-    });
-}
-
-function newTest() {
-    return {
-        pointsRef: React.createRef(),
-        inputRef: React.createRef(),
-        outputRef: React.createRef(),
-        points: "0",
-        inputFile: null,
-        outputFile: null,
-        inputDrag: false,
-        outputDrag: false,
-        inputText: "",
-        outputText: ""
-    };
-}
-
-function newCluster() {
-    return {name: "Cluster", timeLimitRef: React.createRef(), memoryLimitRef: React.createRef(), tests: [newTest()]};
-}
-
-function TestClusterEditor(props) {
-    const {
-        tests,
-        onChange: setTests,
-        timeLimitRef,
-        memoryLimitRef
-    } = props;
-
-    return (
-        <>
-            <Form.Group as={Row} className="my-3" controlId="formTimeLimit">
-                <Form.Label column sm={2}>Time limit</Form.Label>
-                <Col sm={3}>
-                    <InputGroup>
-                        <Form.Control type="text" placeholder="Enter time limit" name="timeLimit"
-                                      ref={timeLimitRef}/>
-                        <InputGroup.Text>ms</InputGroup.Text>
-                    </InputGroup>
-                </Col>
-            </Form.Group>
-            <Form.Group as={Row} className="my-3" controlId="formMemoryLimit">
-                <Form.Label column sm={2}>Memory limit</Form.Label>
-                <Col sm={3}>
-                    <InputGroup>
-                        <Form.Control type="text" placeholder="Enter memory limit" name="memoryLimit"
-                                      ref={memoryLimitRef}/>
-                        <InputGroup.Text>MB</InputGroup.Text>
-                    </InputGroup>
-                </Col>
-            </Form.Group>
-            <EditableTable bordered data={tests} onChange={setTests} dataMapper={
-                (test, key) => (
-                    <>
-                        <td>
-                            <Form.Control type="text" value={test.points} ref={test.pointsRef}
-                                          placeholder="Points" name={`points${key}`} onChange={() => {
-                                test.points = test.pointsRef.current.value;
-                                setTests(tests.map((t, i) => i === key ? test : t));
-                            }}/>
-                        </td>
-                        <td style={{height: "1px"}}>
-                            <DropTextArea file={test.inputFile} text={test.inputText}
-                                          onTextChange={(text) => {
-                                              test.inputText = text;
-                                              setTests(tests.map((t, i) => i === key ? test : t));
-                                          }}
-                                          onFileChange={(file) => {
-                                              test.inputFile = file;
-                                              setTests(tests.map((t, i) => i === key ? test : t));
-                                          }}
-                            />
-                        </td>
-                        <td style={{height: "1px"}}>
-                            <DropTextArea file={test.outputFile} text={test.outputText}
-                                          onTextChange={(text) => {
-                                              test.outputText = text;
-                                              setTests(tests.map((t, i) => i === key ? test : t));
-                                          }}
-                                          onFileChange={(file) => {
-                                              test.outputFile = file;
-                                              setTests(tests.map((t, i) => i === key ? test : t));
-                                          }}
-                            />
-                        </td>
-                    </>
-                )
-            }
-                           newElement={newTest} columns={(
-                <>
-                    <td className="col-1">Points</td>
-                    <td>Input</td>
-                    <td>Output</td>
-                </>
-            )}/>
-        </>
-    );
-}
-
-function TestsEditor(props) {
-    const {testClusters, onChange: setTestClusters, label, ...other} = props;
+function TestsEditor({
+                         testClusters,
+                         onChange: setTestClusters,
+                         label,
+                         ...other
+                     }) {
     const [selected, setSelected] = useState("0");
     const [showModal, setShowModal] = useState(false);
     const [currentEditingIndex, setCurrentEditingIndex] = useState(0);
@@ -232,5 +101,138 @@ function TestsEditor(props) {
                 </Modal>
             )}
         </div>
+    );
+}
+
+function getTestsDTO(testClusters) {
+    return Promise.all(testClusters.map(getClusterDTO));
+}
+
+function getClusterDTO(cluster) {
+    return new Promise((resolve, reject) => {
+        Promise.all(cluster.tests.map(getTestDTO)).then(tests => {
+            resolve({
+                name: cluster.name,
+                timeLimit: cluster.timeLimitRef.current.value,
+                memoryLimit: cluster.memoryLimitRef.current.value,
+                tests: tests
+            });
+        }).catch(reject);
+    });
+}
+
+function getTestDTO(test) {
+    return new Promise((resolve, reject) => {
+        let input, output, points = test.points;
+        if (test.inputFile != null) {
+            input = fileToBase64File(test.inputFile);
+        } else {
+            input = Promise.resolve({data: stringToBase64(test.inputText)});
+        }
+        if (test.outputFile != null) {
+            output = fileToBase64File(test.outputFile);
+        } else {
+            output = Promise.resolve({data: stringToBase64(test.outputText)});
+        }
+        input.then(inp => {
+            output.then(out => {
+                resolve({points: points, input: inp.data, output: out.data});
+            })
+        }).catch(reject);
+    });
+}
+
+function newTest() {
+    return {
+        pointsRef: React.createRef(),
+        inputRef: React.createRef(),
+        outputRef: React.createRef(),
+        points: "0",
+        inputFile: null,
+        outputFile: null,
+        inputDrag: false,
+        outputDrag: false,
+        inputText: "",
+        outputText: ""
+    };
+}
+
+function newCluster() {
+    return {name: "Cluster", timeLimitRef: React.createRef(), memoryLimitRef: React.createRef(), tests: [newTest()]};
+}
+
+function TestClusterEditor({
+                               tests,
+                               onChange: setTests,
+                               timeLimitRef,
+                               memoryLimitRef
+                           }) {
+    return (
+        <>
+            <Form.Group as={Row} className="my-3" controlId="formTimeLimit">
+                <Form.Label column sm={2}>Time limit</Form.Label>
+                <Col sm={3}>
+                    <InputGroup>
+                        <Form.Control type="text" placeholder="Enter time limit" name="timeLimit"
+                                      ref={timeLimitRef}/>
+                        <InputGroup.Text>ms</InputGroup.Text>
+                    </InputGroup>
+                </Col>
+            </Form.Group>
+            <Form.Group as={Row} className="my-3" controlId="formMemoryLimit">
+                <Form.Label column sm={2}>Memory limit</Form.Label>
+                <Col sm={3}>
+                    <InputGroup>
+                        <Form.Control type="text" placeholder="Enter memory limit" name="memoryLimit"
+                                      ref={memoryLimitRef}/>
+                        <InputGroup.Text>MB</InputGroup.Text>
+                    </InputGroup>
+                </Col>
+            </Form.Group>
+            <EditableTable bordered data={tests} onChange={setTests} dataMapper={
+                (test, key) => (
+                    <>
+                        <td>
+                            <Form.Control type="text" value={test.points} ref={test.pointsRef}
+                                          placeholder="Points" name={`points${key}`} onChange={() => {
+                                test.points = test.pointsRef.current.value;
+                                setTests(tests.map((t, i) => i === key ? test : t));
+                            }}/>
+                        </td>
+                        <td style={{height: "1px"}}>
+                            <DropTextArea file={test.inputFile} text={test.inputText}
+                                          onTextChange={(text) => {
+                                              test.inputText = text;
+                                              setTests(tests.map((t, i) => i === key ? test : t));
+                                          }}
+                                          onFileChange={(file) => {
+                                              test.inputFile = file;
+                                              setTests(tests.map((t, i) => i === key ? test : t));
+                                          }}
+                            />
+                        </td>
+                        <td style={{height: "1px"}}>
+                            <DropTextArea file={test.outputFile} text={test.outputText}
+                                          onTextChange={(text) => {
+                                              test.outputText = text;
+                                              setTests(tests.map((t, i) => i === key ? test : t));
+                                          }}
+                                          onFileChange={(file) => {
+                                              test.outputFile = file;
+                                              setTests(tests.map((t, i) => i === key ? test : t));
+                                          }}
+                            />
+                        </td>
+                    </>
+                )
+            }
+                           newElement={newTest} columns={(
+                <>
+                    <td className="col-1">Points</td>
+                    <td>Input</td>
+                    <td>Output</td>
+                </>
+            )}/>
+        </>
     );
 }

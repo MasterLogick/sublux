@@ -24,12 +24,13 @@ export default function TaskInfo() {
             setTask(resp.data);
         });
     }, []);
-    useEffect(() => {
+    const update = () => {
         if (isUserLogged)
             axios.get(`/api/solution/getMySolutions/${id}`).then(resp => {
                 setMySolutions(resp.data);
             });
-    }, []);
+    };
+    useEffect(update, []);
 
     function upload() {
         getProgramDTO(src, language).then(program => {
@@ -37,7 +38,7 @@ export default function TaskInfo() {
                 taskId: id,
                 solution: program
             };
-            axios.post("/api/solution/upload", data).then(() => navigate(0)).catch(console.log);
+            axios.post("/api/solution/upload", data).then(update).catch(console.log);
         })
     }
 
@@ -89,7 +90,8 @@ export default function TaskInfo() {
                 <>
                     <ProgramUploadFormGroup className="mb-3" name="upload"
                                             isSrcInvalid={srcValidationError != null}
-                                            onSrcChange={setSrc} language={language} onLangChange={setLanguage}/>
+                                            onSrcChange={setSrc} language={language} onLangChange={setLanguage}
+                                            allowedLanguages={task.allowedLanguages}/>
                     <div className="d-flex justify-content-end">
                         <Button className="ms-auto" variant={"dark"} onClick={upload}>Upload</Button>
                     </div>

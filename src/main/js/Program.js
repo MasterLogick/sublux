@@ -14,8 +14,17 @@ function getProgramDTO(files, language) {
     });
 }
 
-function ProgramUploadFormGroup(props) {
-    const {label, name, isSrcInvalid, srcValidationError, onSrcChange, language, onLangChange, ...other} = props;
+function ProgramUploadFormGroup({
+                                    label,
+                                    name,
+                                    isSrcInvalid,
+                                    srcValidationError,
+                                    onSrcChange,
+                                    language,
+                                    onLangChange,
+                                    allowedLanguages,
+                                    ...other
+                                }) {
     let fileRef = React.createRef();
 
     return (
@@ -33,7 +42,7 @@ function ProgramUploadFormGroup(props) {
                 </Form.Group>
                 <Form.Group className="mb-3">
                     <Form.Label>Select language</Form.Label>
-                    <LanguageSelector value={language} onSelect={onLangChange}/>
+                    <LanguageSelector value={language} onSelect={onLangChange} allowedLanguages={allowedLanguages}/>
                 </Form.Group>
             </div>
         </div>
