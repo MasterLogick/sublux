@@ -3,11 +3,10 @@ import axios from "axios";
 import {CloseButton, Dropdown, Stack} from "react-bootstrap";
 import DropdownMenu from "react-bootstrap/DropdownMenu";
 
-export default function LanguageSelector(props) {
+export default function LanguageSelector({value, multiple, onSelect, allowedLanguages}) {
     let filterProxy = {m: null};
-    const [selected, setSelected] = useState(props?.value || []);
-    const multiple = props?.multiple || false;
-    const onSelect = props.onSelect;
+    const [selected, setSelected] = useState(value || []);
+    multiple = multiple || false;
 
     const Toggle = React.forwardRef(({onClick}, ref) => {
         return (
@@ -15,7 +14,7 @@ export default function LanguageSelector(props) {
                 {selected.map((lang, key) => (
                     <div className={"px-1 border border-1 border-dark rounded-3 d-flex align-items-center"}
                          style={{whiteSpace: "nowrap"}} key={key}>
-                        {lang.name} <CloseButton onClick={() => setSelected(selected.filter(it => it != lang))}/>
+                        {lang.name} <CloseButton onClick={() => setSelected(selected.filter(it => it !== lang))}/>
                     </div>
                 ))}
                 <input className={"form-select"} type="text" ref={ref} onClick={(e) => {
@@ -36,27 +35,30 @@ export default function LanguageSelector(props) {
                 <FilteredLanguageList filterProxy={filterProxy} setSelected={(arr) => {
                     setSelected(arr);
                     onSelect(arr);
-                }} selected={selected} multiple={multiple}/>
+                }} selected={selected} multiple={multiple} allowedLanguages={allowedLanguages}/>
             </DropdownMenu>
         </Dropdown>
     );
 }
 
-function FilteredLanguageList(props) {
+function FilteredLanguageList({selected, multiple, setSelected, filterProxy, allowedLanguages}) {
     const [languages, setLanguages] = useState([]);
     const [filter, setFilter] = useState("");
-    props.filterProxy.m = setFilter;
-    const selected = props?.selected || [];
-    const multiple = props?.multiple || false;
-    const setSelected = props.setSelected;
+    filterProxy.m = setFilter;
+    selected = selected || [];
+    multiple = multiple || false;
 
     useEffect(() => {
-        axios.get("/api/language/search", {
-            params: {
-                filter: filter,
-                perPage: 20
-            }
-        }).then(resp => setLanguages(resp.data.content));
+        if (!allowedLanguages) {
+            axios.get("/api/language/search", {
+                params: {
+                    filter: filter,
+                    perPage: 20
+                }
+            }).then(resp => setLanguages(resp.data.content));
+        } else {
+            setLanguages(allowedLanguages.filter(t => t.name.includes(filter)));
+        }
     }, [filter]);
     return (
         <>

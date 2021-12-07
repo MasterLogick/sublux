@@ -9,7 +9,7 @@ import style from "react-syntax-highlighter/dist/esm/styles/hljs/docco";
 
 export {MarkdownDescription};
 
-const MarkdownDescription = (props) => {
+const MarkdownDescription = ({...props}) => {
     return (<ReactMarkdown
         remarkPlugins={[[remarkGfm, {singleTilde: false}], remarkMath]}
         rehypePlugins={[rehypeKatex]}

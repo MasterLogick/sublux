@@ -3,8 +3,14 @@ import React, {useState} from "react";
 
 export {DropTextArea};
 
-function DropTextArea(props) {
-    const {file, text, onTextChange, onFileChange, className, ...others} = props;
+function DropTextArea({
+                          file,
+                          text,
+                          onTextChange,
+                          onFileChange,
+                          className,
+                          ...others
+                      }) {
     const [drag, setDrag] = useState(false);
     const ref = React.createRef();
     return (

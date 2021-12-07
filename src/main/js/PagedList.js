@@ -2,16 +2,13 @@ import React, {useEffect, useState} from "react";
 import axios from "axios";
 import {Nav, Pagination, Table} from "react-bootstrap";
 
-export default function ContestList(props) {
-    const [currentPage, setCurrentPage] = useState(props?.currentPage || 0);
+export default function PagedList({pCurrentPage, perPage, objectMapper, url, fetcher, header}) {
+    const [currentPage, setCurrentPage] = useState(pCurrentPage || 0);
     const [totalPages, setTotalPages] = useState(1);
     const [data, setData] = useState([]);
-    const perPage = props?.perPage || 20;
-    const objectMapper = props?.objectMapper;
-    const url = props?.url;
-    let fetcher = props?.fetcher;
+    perPage = perPage || 20;
     let fetch;
-    const header = props?.header || null;
+    header = header || null;
 
     if (url !== null) {
         fetch = () => {

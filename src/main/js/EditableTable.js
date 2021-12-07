@@ -3,9 +3,14 @@ import React from "react";
 
 export {EditableTable};
 
-function EditableTable(props) {
-    const {data, onChange: setData, dataMapper, newElement, columns, ...others} = props;
-
+function EditableTable({
+                           data,
+                           onChange: setData,
+                           dataMapper,
+                           newElement,
+                           columns,
+                           ...others
+                       }) {
     return (
         <Table {...others}>
             <thead>
