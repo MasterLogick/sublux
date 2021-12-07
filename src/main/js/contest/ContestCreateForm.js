@@ -3,7 +3,7 @@ import {Link, useNavigate} from "react-router-dom";
 import {RequireAuthorized, useUser} from "../Authorization";
 import getMyTasks from "../task/GetMyTasks";
 import axios from "axios";
-import {Button, Container, Form} from "react-bootstrap";
+import {Alert, Button, Container, Form} from "react-bootstrap";
 import {EditableTable} from "../EditableTable";
 
 export default function ContestCreateForm() {
@@ -33,6 +33,9 @@ export default function ContestCreateForm() {
         setTasksValidationError(null);
         if (selectedTasks.length === 0) {
             setTasksValidationError("Select at least one task");
+        }
+        if (selectedTasks.filter(task => task.task == null).length !== 0) {
+            setTasksValidationError("Select all tasks");
         }
         axios.post("/api/contest/create", {
             name: name.current.value,
@@ -74,6 +77,7 @@ export default function ContestCreateForm() {
                     <Form.Control.Feedback type={"invalid"}>{descriptionValidationError}</Form.Control.Feedback>
                 </Form.Group>
                 <div className={"mb-3"}>
+                    {tasksValidationError !== null && <Alert variant="danger">{tasksValidationError}</Alert>}
                     <Form.Label>Task list</Form.Label>
                     <hr className={"mb-2 mt-0"}/>
                     {(selectedTasks.length === 1 && selectedTasks[0].task == null && unusedTasks.length === 0) && (
