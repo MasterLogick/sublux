@@ -59,7 +59,6 @@ export default function TaskCreateForm() {
                         solution: solutionDTO,
                         tests: testsDTO
                     }
-                    console.log(JSON.stringify(data));
                     axios.post("/api/task/create", JSON.stringify(data), {
                         headers: {"Content-Type": "application/json"}
                     }).then(() => history.push("/")).catch(err => {
@@ -83,7 +82,8 @@ export default function TaskCreateForm() {
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="formDescription">
                     <Form.Label>Description</Form.Label>
-                    <Form.Control as="textarea" placeholder="Enter description" name="description" ref={description}
+                    <Form.Control as="textarea" placeholder="Enter description(markdown supported)" name="description"
+                                  ref={description}
                                   isInvalid={descriptionValidationError !== null}/>
                     <Form.Control.Feedback type="invalid">{descriptionValidationError}</Form.Control.Feedback>
                 </Form.Group>

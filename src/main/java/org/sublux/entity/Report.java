@@ -17,15 +17,27 @@ public class Report {
     @Enumerated(EnumType.STRING)
     @Column(name = "state")
     private State state;
+
     @Lob
     @Column(name = "compressed_log")
     private byte[] compressedLog;
+
+    @ManyToOne
+    @JoinColumn(name = "author")
+    private User author;
 
     public Report() {
     }
 
     public Report(State state) {
         this.state = state;
+    }
+
+    public Report(Report report) {
+        this.id = report.id;
+        this.state = report.state;
+        this.compressedLog = report.compressedLog;
+        this.author = report.author;
     }
 
     public Long getId() {
@@ -50,6 +62,14 @@ public class Report {
 
     public void setCompressedLog(byte[] compressedLog) {
         this.compressedLog = compressedLog;
+    }
+
+    public User getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(User author) {
+        this.author = author;
     }
 
     public enum State {

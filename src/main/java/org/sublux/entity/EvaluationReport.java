@@ -38,6 +38,18 @@ public class EvaluationReport {
     @JoinColumn(name = "author_id")
     private User author;
 
+    public EvaluationReport() {
+    }
+
+    public EvaluationReport(EvaluationReport evaluationReport) {
+        this.id = evaluationReport.id;
+        this.buildReport = evaluationReport.buildReport;
+        this.runReports = evaluationReport.runReports;
+        this.evaluatedProgram = evaluationReport.evaluatedProgram;
+        this.task = evaluationReport.task;
+        this.author = evaluationReport.author;
+    }
+
     public Long getId() {
         return id;
     }

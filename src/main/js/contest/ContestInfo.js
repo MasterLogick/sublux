@@ -2,6 +2,7 @@ import {Link, useParams} from "react-router-dom";
 import React, {useEffect, useState} from "react";
 import axios from "axios";
 import {Container, Table} from "react-bootstrap";
+import {MarkdownDescription} from "../MarkdownDescription";
 
 export default function ContestInfo() {
     let {id} = useParams();
@@ -29,7 +30,7 @@ export default function ContestInfo() {
     function contestView() {
         return (<>
             <h2>{data.name}</h2>
-            <p>{data.description}</p>
+            <p><MarkdownDescription>{data.description}</MarkdownDescription></p>
             <Table responsive bordered hover>
                 <thead>
                 <tr>

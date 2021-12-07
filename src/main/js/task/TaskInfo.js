@@ -5,8 +5,11 @@ import axios from "axios";
 import {getProgramDTO, ProgramUploadFormGroup} from "../Program";
 import {Badge, Button, Container, OverlayTrigger, Popover, Stack, Tab, Table, Tabs} from "react-bootstrap";
 import {MarkdownDescription} from "../MarkdownDescription";
+import BuildReportBadge from "../report/BuildReportBadge";
+import RunReportBadge from "../report/RunReportBadge";
+import {getReport} from "../report/ReportBadgeUtil";
 
-export default function TaskFullView() {
+export default function TaskInfo() {
     let {id} = useParams();
     let history = useHistory();
     const [task, setTask] = useState({});
@@ -61,23 +64,25 @@ export default function TaskFullView() {
                 bg={"secondary"}>{task.tasks?.map(cluster => cluster.memoryLimit).reduce((a, b) => a + b, 0) / task.tasks?.length} MB</Badge>
             </div>
             <Tabs>
-                {task.tasks?.map((c, key) => (<Tab key={key} title={c.name} eventKey={key}>
-                    <div className={"my-1"}>
-                        Time
-                        limit: <Badge
-                        bg={"secondary"}>{c.timeLimit} ms</Badge>
-                    </div>
-                    <div className={"my-1 mb-2"}>
-                        Memory
-                        limit: <Badge
-                        bg={"secondary"}>{c.memoryLimit} MB</Badge>
-                    </div>
-                    <div className={"d-flex justify-content-start overflow-scroll"}>
-                        {c.tests.map((t, i) => (
-                            <h5 className={"mx-1"} key={i}><Badge bg={"warning"}>{t.points}p</Badge></h5>
-                        ))}
-                    </div>
-                </Tab>))}
+                {task.tasks?.map((c, key) => (
+                    <Tab key={key} title={c.name} eventKey={key}>
+                        <div className={"my-1"}>
+                            Time
+                            limit: <Badge
+                            bg={"secondary"}>{c.timeLimit} ms</Badge>
+                        </div>
+                        <div className={"my-1 mb-2"}>
+                            Memory
+                            limit: <Badge
+                            bg={"secondary"}>{c.memoryLimit} MB</Badge>
+                        </div>
+                        <div className={"d-flex justify-content-start overflow-scroll"}>
+                            {c.tests.map((t, i) => (
+                                <h5 className={"mx-1"} key={i}><Badge bg={"warning"}>{t.points}p</Badge></h5>
+                            ))}
+                        </div>
+                    </Tab>
+                ))}
             </Tabs>
             <hr className="mt-0"/>
             {isUserLogged ?
@@ -93,7 +98,7 @@ export default function TaskFullView() {
                         <thead>
                         <tr>
                             <td className="col-1">
-                                ID
+                                #
                             </td>
                             <td className="col-2">
                                 Build
@@ -104,8 +109,8 @@ export default function TaskFullView() {
                         <tbody>
                         {mySolutions?.map((sol, key) => (
                             <tr key={key}>
-                                <td>{key + 1}</td>
-                                <td>{getBuildReportBadge(sol.buildReport)}</td>
+                                <td><Link to={`/report/${sol.id}`}>{key + 1}</Link></td>
+                                <td><BuildReportBadge report={sol.buildReport}/></td>
                                 <td>{sol.buildReport.state === "SUCCESS" && getRunReportBadges(sol.runReports, task)}</td>
                             </tr>
                         )).reverse()}
@@ -120,29 +125,6 @@ export default function TaskFullView() {
             }
         </Container>
     );
-}
-
-function getBuildReportBadge(buildReport) {
-    let color = "";
-    switch (buildReport.state) {
-        case "SUCCESS":
-            color = "success";
-            break;
-        case "PENDING":
-            color = "info";
-            break;
-        case "TIME_LIMIT_EXCEEDED":
-        case "MEMORY_LIMIT_EXCEEDED":
-        case "VOLUME_QUOTA_EXCEEDED":
-        case "RUNTIME_EXCEPTION":
-        case "WRONG_ANSWER":
-            color = "danger";
-            break;
-        case "DOCKER_EXCEPTION":
-            color = "dark";
-            break;
-    }
-    return (<Badge bg={color}>{buildReport.state}</Badge>)
 }
 
 function getRunReportBadges(runReports, task) {
@@ -161,7 +143,7 @@ function getRunReportBadges(runReports, task) {
             if (report === undefined) {
                 pending++;
             }
-            testSet.push(getRunReportBadge(report, test));
+            testSet.push(<RunReportBadge report={report} test={test}/>);
         }
         let bg = "";
         let label = `${totalSum}/${maxSum}`;
@@ -190,34 +172,4 @@ function getRunReportBadges(runReports, task) {
             </OverlayTrigger>));
     }
     return badges;
-}
-
-
-function getReport(runReports, id) {
-    return runReports.filter(rep => rep.testId === id)[0]?.report;
-}
-
-function getRunReportBadge(runReport, test) {
-    if (runReport === undefined) return (<Badge bg="info">{`PENDING (?/${test.points})`}</Badge>);
-    let color = "";
-    switch (runReport.state) {
-        case "SUCCESS":
-            color = "success";
-            break;
-        case "TIME_LIMIT_EXCEEDED":
-        case "MEMORY_LIMIT_EXCEEDED":
-        case "VOLUME_QUOTA_EXCEEDED":
-        case "RUNTIME_EXCEPTION":
-        case "WRONG_ANSWER":
-            color = "danger";
-            break;
-        default:
-            color = "dark";
-            break;
-    }
-    return (
-        <Badge bg={color}>
-            {`${runReport.state} (${runReport.state === "SUCCESS" ? test.points : 0}/${test.points})`}
-        </Badge>
-    )
 }

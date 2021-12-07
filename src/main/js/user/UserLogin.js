@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {Link, useHistory, useLocation} from "react-router-dom";
+import {Link, useHistory} from "react-router-dom";
 import {authUser, useUser} from "../Authorization";
 import {Alert, Button, Col, Container, Form, Row, Stack} from "react-bootstrap";
 
@@ -13,7 +13,6 @@ export default function UserLogin() {
     const [passwordInvalid, setPasswordInvalid] = useState(false);
 
     let history = useHistory();
-    let location = useLocation();
     let user = useUser();
 
     function onSubmit(event) {
@@ -79,7 +78,6 @@ export default function UserLogin() {
                         </Stack>
                     </Col>
                 </Row>
-
             </Form>
         </Container>
     );

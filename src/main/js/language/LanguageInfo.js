@@ -23,7 +23,7 @@ export default function LanguageInfo() {
             <h2>Language {language.name} info</h2>
             <hr/>
             <div className={"mb-3"}>
-                <h4>Docker archive</h4>
+                <h4>Dockerfile archive</h4>
                 <a href={`/api/language/getDockerTar/${id}`} download>Download</a>
             </div>
             <div className={"mb-3"}>

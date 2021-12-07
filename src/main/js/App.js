@@ -8,6 +8,7 @@ import Footer from "./Footer";
 import {tryGetCredentials, UserProvider, useUser} from "./Authorization";
 import {CookiesProvider} from "react-cookie";
 import LanguageRouter from "./language/LanguageRouter";
+import ReportRouter from "./report/ReportRouter";
 
 export default () => (<CookiesProvider><UserProvider><App/></UserProvider></CookiesProvider>);
 
@@ -24,6 +25,7 @@ function App() {
                         <Route path="/task/" component={TaskRouter}/>
                         <Route path="/user/" component={UserRouter}/>
                         <Route path="/language/" component={LanguageRouter}/>
+                        <Route path="/report/" component={ReportRouter}/>
                         <Route><Redirect to={"/contest/"}/></Route>
                     </Switch>
                 </div>
