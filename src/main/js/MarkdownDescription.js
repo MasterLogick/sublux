@@ -6,6 +6,7 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import {LightAsync as SyntaxHighlighter} from "react-syntax-highlighter";
 import style from "react-syntax-highlighter/dist/esm/styles/hljs/docco";
+import FancyCodeBlock from "./FancyCodeBlock";
 
 export {MarkdownDescription};
 
@@ -30,9 +31,7 @@ const MarkdownDescription = ({...props}) => {
                             className={"border rounded-2 " + (className || "")}
                             {...props}
                         />
-                    ) : <code
-                        className={"bg-light border rounded-3 p-1 " + (!inline && "w-100 d-block") + (className || "")}
-                        children={children} {...props}/>);
+                    ) : <FancyCodeBlock className={className} inline={inline}>{children}</FancyCodeBlock>);
             },
             table({node, ...props}) {
                 return (<Table bordered {...props}/>);

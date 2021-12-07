@@ -6,11 +6,16 @@ import BuildReportBadge from "./BuildReportBadge";
 import {getReport} from "./ReportBadgeUtil";
 import {Zlib} from "zlibjs/bin/inflate.dev.min";
 import {RequireAuthorized} from "../Authorization";
+import FancyCodeBlock from "../FancyCodeBlock";
 
 export default function ReportInfo() {
     let {id} = useParams();
     const [evaluationReport, setEvaluationReport] = useState({});
     const [task, setTask] = useState(null);
+
+    const buildLog = decompressLog(evaluationReport.buildReport?.compressedLog);
+    console.log(buildLog);
+
     useEffect(() => {
         axios.get(`/api/report/${id}`).then(reportResponse => {
             setEvaluationReport(reportResponse.data);
@@ -25,8 +30,12 @@ export default function ReportInfo() {
             <h2>Evaluation report {evaluationReport.name}</h2>
             <div>
                 <h5>Build report: <BuildReportBadge report={evaluationReport.buildReport}/></h5>
+                <h5>Build report log:</h5>
+                <FancyCodeBlock inline={false}>
+                    {buildLog || "EMPTY"}
+                </FancyCodeBlock>
             </div>
-            <div>
+            {evaluationReport.buildReport?.state === "SUCCESS" && <div>
                 <h5>Run reports:</h5>
                 <Tabs>
                     {task?.tasks?.map((cluster, key) => (
@@ -44,22 +53,15 @@ export default function ReportInfo() {
                                 </thead>
                                 <tbody>
                                 {cluster.tests?.map((test, key) => {
-                                    const log = getReport(evaluationReport?.runReports, test.id)?.compressedLog;
-                                    const compressed = new Uint8Array(
-                                        atob(
-                                            log
-                                        ).split('').map(x => x.charCodeAt(0)
-                                        )
-                                    );
-                                    const decompressed = String.fromCharCode.apply(
-                                        null, new Uint8Array(
-                                            new Zlib.Inflate(compressed).decompress()
-                                        )
-                                    );
+
                                     return (
                                         <tr key={key}>
                                             <td>{key}</td>
-                                            <td>{decompressed}</td>
+                                            <td>
+                                                <FancyCodeBlock inline={false}>
+                                                    {decompressLog(getReport(evaluationReport?.runReports, test.id)?.compressedLog) || " "}
+                                                </FancyCodeBlock>
+                                            </td>
                                         </tr>
                                     );
                                 })}
@@ -68,7 +70,25 @@ export default function ReportInfo() {
                         </Tab>
                     ))}
                 </Tabs>
-            </div>
+            </div>}
         </Container>
     );
+}
+
+function decompressLog(compressedLog) {
+    if (typeof compressedLog === "string" || compressedLog instanceof String) {
+        const compressed = new Uint8Array(
+            atob(
+                compressedLog
+            ).split('').map(x => x.charCodeAt(0)
+            )
+        );
+        const decompressed = String.fromCharCode.apply(
+            null, new Uint8Array(
+                new Zlib.Inflate(compressed).decompress()
+            )
+        );
+        return decompressed;
+    }
+    return null;
 }

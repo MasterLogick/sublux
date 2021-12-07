@@ -23,7 +23,7 @@ function getReportLabel(report) {
         case "SUCCESS":
             return "Success";
         case "PENDING":
-            return "Info";
+            return "Pending";
         case "TIME_LIMIT_EXCEEDED":
             return "Time limit exceeded"
         case "MEMORY_LIMIT_EXCEEDED":
