@@ -1,27 +1,33 @@
 import React, {Suspense} from "react";
 import {Redirect, Route, Switch} from "react-router-dom";
 
+const UserProfile = React.lazy(() => import("./UserProfile"));
+const UserRegister = React.lazy(() => import("./UserRegister"));
+const UserLogin = React.lazy(() => import("./UserLogin"));
+const UserRecoveryPassword = React.lazy(() => import("./UserRecoveryPassword"));
+const UserLogout = React.lazy(() => import("./UserLogout"));
+
 export default function UserRouter(props) {
     return (
         <Suspense fallback={null}>
             <Switch>
                 <Route path={`${props.match.path}profile`} exact
-                       component={React.lazy(() => import("./UserProfile"))}/>
+                       component={UserProfile}/>
 
                 <Route path={`${props.match.path}register`} exact
-                       component={React.lazy(() => import("./UserRegister"))}/>
+                       component={UserRegister}/>
 
                 <Route path={`${props.match.path}login`} exact
-                       component={React.lazy(() => import("./UserLogin"))}/>
+                       component={UserLogin}/>
 
                 <Route path={`${props.match.path}recovery`} exact
-                       component={React.lazy(() => import("./UserRecoveryPassword"))}/>
+                       component={UserRecoveryPassword}/>
 
                 <Route path={`${props.match.path}logout`} exact
-                       component={React.lazy(() => import("./UserLogout"))}/>
+                       component={UserLogout}/>
 
                 <Route><Redirect to={"/"}/></Route>
             </Switch>
-            s</Suspense>
+        </Suspense>
     );
 }
