@@ -35,7 +35,6 @@ export default function ContestInfo() {
                 <thead>
                 <tr>
                     <td className={"col-10"}>Task:</td>
-                    <td>Points:</td>
                 </tr>
                 </thead>
                 <tbody>{(() => {
@@ -43,7 +42,6 @@ export default function ContestInfo() {
                         return data.tasks.map((task, index) =>
                             <tr key={index}>
                                 <td><Link to={`/task/${task.id}`}>{task.name}</Link></td>
-                                <td>0/0</td>
                             </tr>)
                     } else
                         return (<></>);

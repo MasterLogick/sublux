@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {Button, CloseButton, Col, Form, InputGroup, Modal, Row, Tab, Tabs} from "react-bootstrap";
 import {RequireAuthorized} from "./Authorization";
-import {fileToBase64File, stringToBase64} from "./Utill";
+import {fileToBase64File, stringToUtf8Base64} from "./Utill";
 import {EditableTable} from "./EditableTable";
 import {DropTextArea} from "./DropTextArea";
 
@@ -127,12 +127,12 @@ function getTestDTO(test) {
         if (test.inputFile != null) {
             input = fileToBase64File(test.inputFile);
         } else {
-            input = Promise.resolve({data: stringToBase64(test.inputText)});
+            input = Promise.resolve({data: stringToUtf8Base64(test.inputText)});
         }
         if (test.outputFile != null) {
             output = fileToBase64File(test.outputFile);
         } else {
-            output = Promise.resolve({data: stringToBase64(test.outputText)});
+            output = Promise.resolve({data: stringToUtf8Base64(test.outputText)});
         }
         input.then(inp => {
             output.then(out => {

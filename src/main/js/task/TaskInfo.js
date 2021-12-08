@@ -1,23 +1,23 @@
-import {Link, useNavigate, useParams} from "react-router-dom";
+import {Link, useParams} from "react-router-dom";
 import React, {useEffect, useState} from "react";
 import {isLogged, useUser} from "../Authorization";
 import axios from "axios";
 import {getProgramDTO, ProgramUploadFormGroup} from "../Program";
-import {Badge, Button, Container, OverlayTrigger, Popover, Stack, Tab, Table, Tabs} from "react-bootstrap";
+import {Badge, Button, Container, Tab, Table, Tabs} from "react-bootstrap";
 import {MarkdownDescription} from "../MarkdownDescription";
 import BuildReportBadge from "../report/BuildReportBadge";
 import RunReportBadge from "../report/RunReportBadge";
 import {getReport} from "../report/ReportBadgeUtil";
+import ClusterRunReportBadge from "../report/ClusterRunReportBadge";
 
 export default function TaskInfo() {
     let {id} = useParams();
-    let navigate = useNavigate();
     const [task, setTask] = useState({});
-    const [srcValidationError, setSrcValidationError] = useState(null);
     const [language, setLanguage] = useState(null);
     const [src, setSrc] = useState(null);
     const [mySolutions, setMySolutions] = useState(null);
     const isUserLogged = isLogged(useUser());
+    const [bestSubmission, setBestSubmission] = useState();
 
     useEffect(() => {
         axios.get(`/api/task/${id}`).then(resp => {
@@ -30,6 +30,32 @@ export default function TaskInfo() {
                 setMySolutions(resp.data);
             });
     };
+    useEffect(() => {
+        if (mySolutions) {
+            let best;
+            let maxTotalPoints = 0;
+            for (const solution of mySolutions) {
+                if (solution.buildReport.state === "SUCCESS") {
+                    let totalPoints = 0;
+                    task.tasks.forEach(cluster => {
+                        cluster.tests.forEach(test => {
+                            const rep = getReport(solution.runReports, test.id);
+                            if (rep.state === "SUCCESS") {
+                                totalPoints += test.points;
+                            }
+                        })
+                    })
+                    if (totalPoints > maxTotalPoints) {
+                        best = solution;
+                        maxTotalPoints = totalPoints;
+                    }
+                }
+            }
+            if (maxTotalPoints > 0)
+                setBestSubmission(best);
+        }
+    }, [mySolutions]);
+
     useEffect(update, []);
 
     function upload() {
@@ -64,32 +90,41 @@ export default function TaskInfo() {
                 limit: <Badge
                 bg={"secondary"}>{task.tasks?.map(cluster => cluster.memoryLimit).reduce((a, b) => a + b, 0) / task.tasks?.length} MB</Badge>
             </div>
-            <Tabs>
-                {task.tasks?.map((c, key) => (
-                    <Tab key={key} title={c.name} eventKey={key}>
-                        <div className={"my-1"}>
-                            Time
-                            limit: <Badge
-                            bg={"secondary"}>{c.timeLimit} ms</Badge>
-                        </div>
-                        <div className={"my-1 mb-2"}>
-                            Memory
-                            limit: <Badge
-                            bg={"secondary"}>{c.memoryLimit} MB</Badge>
-                        </div>
-                        <div className={"d-flex justify-content-start overflow-scroll"}>
-                            {c.tests.map((t, i) => (
-                                <h5 className={"mx-1"} key={i}><Badge bg={"warning"}>{t.points}p</Badge></h5>
-                            ))}
-                        </div>
-                    </Tab>
-                ))}
-            </Tabs>
+            {bestSubmission && <div className="mt-3">
+                <h5>Your <a href="#" onClick={() => {
+                    const link = document.getElementById(`report_${bestSubmission.id}`);
+                    link.scrollIntoView();
+                }
+                }>best</a> submission:</h5>
+                <Tabs>
+                    {task.tasks?.map((c, key) => (
+                        <Tab key={key}
+                             title={<ClusterRunReportBadge runReports={bestSubmission.runReports} testCluster={c}/>}
+                             eventKey={key}>
+                            <div className={"my-1"}>
+                                Time limit: <Badge
+                                bg={"secondary"}>{c.timeLimit} ms</Badge>
+                            </div>
+                            <div className={"my-1 mb-2"}>
+                                Memory limit: <Badge
+                                bg={"secondary"}>{c.memoryLimit} MB</Badge>
+                            </div>
+                            <div className={"d-flex justify-content-start overflow-scroll"}>
+                                {c.tests.map((t, i) => (
+                                    <h5 className={"mx-1"} key={i}>
+                                        <RunReportBadge report={getReport(bestSubmission.runReports, t.id)} test={t}/>
+                                    </h5>
+                                ))}
+                            </div>
+                        </Tab>
+                    ))}
+                </Tabs>
+            </div>}
             <hr className="mt-0"/>
             {isUserLogged ?
                 <>
                     <ProgramUploadFormGroup className="mb-3" name="upload"
-                                            isSrcInvalid={srcValidationError != null}
+                                            isSrcInvalid={false}
                                             onSrcChange={setSrc} language={language} onLangChange={setLanguage}
                                             allowedLanguages={task.allowedLanguages}/>
                     <div className="d-flex justify-content-end">
@@ -111,9 +146,12 @@ export default function TaskInfo() {
                         <tbody>
                         {mySolutions?.map((sol, key) => (
                             <tr key={key}>
-                                <td><Link to={`/report/${sol.id}`}>{key + 1}</Link></td>
+                                <td><Link to={`/report/${sol.id}`} id={`report_${sol.id}`}>{key + 1}</Link></td>
                                 <td><BuildReportBadge report={sol.buildReport}/></td>
-                                <td>{sol.buildReport.state === "SUCCESS" && getRunReportBadges(sol.runReports, task)}</td>
+                                <td>{sol.buildReport.state === "SUCCESS" && task?.tasks.map((cluster, key) => (
+                                    <ClusterRunReportBadge runReports={sol.runReports} testCluster={cluster}
+                                                           key={key} popup/>
+                                ))}</td>
                             </tr>
                         )).reverse()}
                         </tbody>
@@ -127,51 +165,4 @@ export default function TaskInfo() {
             }
         </Container>
     );
-}
-
-function getRunReportBadges(runReports, task) {
-    const badges = [];
-    for (const testCluster of task?.tasks) {
-        let totalSum = 0;
-        let maxSum = 0;
-        const testSet = [];
-        let pending = 0;
-        for (const test of testCluster?.tests) {
-            maxSum += test.points;
-            const report = getReport(runReports, test.id);
-            if (report?.state === "SUCCESS") {
-                totalSum += test.points;
-            }
-            if (report === undefined) {
-                pending++;
-            }
-            testSet.push(<RunReportBadge report={report} test={test}/>);
-        }
-        let bg = "";
-        let label = `${totalSum}/${maxSum}`;
-        if (totalSum >= maxSum) {
-            bg = "success";
-        } else if (totalSum * 2 >= maxSum) {
-            bg = "warning";
-        } else {
-            bg = "danger";
-        }
-        if (pending > 0) {
-            bg = "info";
-            label = "PENDING";
-        }
-        badges.push((
-            <OverlayTrigger placement="bottom" overlay={
-                <Popover>
-                    <Popover.Body>
-                        <Stack gap={2}>
-                            {testSet}
-                        </Stack>
-                    </Popover.Body>
-                </Popover>
-            }>
-                <Badge bg={bg}>{testCluster.name + ": " + label}</Badge>
-            </OverlayTrigger>));
-    }
-    return badges;
 }

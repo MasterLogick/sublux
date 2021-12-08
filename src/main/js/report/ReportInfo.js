@@ -14,7 +14,6 @@ export default function ReportInfo() {
     const [task, setTask] = useState(null);
 
     const buildLog = decompressLog(evaluationReport.buildReport?.compressedLog);
-    console.log(buildLog);
 
     useEffect(() => {
         axios.get(`/api/report/${id}`).then(reportResponse => {
@@ -28,7 +27,7 @@ export default function ReportInfo() {
         <Container>
             <RequireAuthorized/>
             <h2>Evaluation report {evaluationReport.name}</h2>
-            <div>
+            <div className="mb-3">
                 <h5>Build report: <BuildReportBadge report={evaluationReport.buildReport}/></h5>
                 <h5>Build report log:</h5>
                 <FancyCodeBlock inline={false}>
@@ -53,13 +52,12 @@ export default function ReportInfo() {
                                 </thead>
                                 <tbody>
                                 {cluster.tests?.map((test, key) => {
-
                                     return (
                                         <tr key={key}>
                                             <td>{key}</td>
                                             <td>
                                                 <FancyCodeBlock inline={false}>
-                                                    {decompressLog(getReport(evaluationReport?.runReports, test.id)?.compressedLog) || " "}
+                                                    {decompressLog(getReport(evaluationReport?.runReports, test.id)?.compressedLog) || "EMPTY"}
                                                 </FancyCodeBlock>
                                             </td>
                                         </tr>
