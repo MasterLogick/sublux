@@ -2,7 +2,6 @@ package org.sublux.web.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindException;
@@ -12,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.sublux.auth.UserDetailsImpl;
+import org.sublux.entity.User;
 import org.sublux.serialization.UserLong;
 import org.sublux.service.UserAlreadyExistsException;
 import org.sublux.service.UserService;
@@ -46,11 +46,12 @@ public class UserController {
     }
 
     @GetMapping(path = "/me")
-    public ResponseEntity<Object> getUser(Authentication authentication) {
-        if (authentication == null || authentication.getPrincipal() instanceof AnonymousAuthenticationToken) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    public ResponseEntity<User> getUser(Authentication authentication) {
+        if (authentication != null) {
+            if (authentication.getPrincipal() instanceof UserDetailsImpl) {
+                return ResponseEntity.ok(new UserLong((User) authentication.getPrincipal()));
+            }
         }
-        UserDetailsImpl details = (UserDetailsImpl) authentication.getPrincipal();
-        return ResponseEntity.ok().body(new UserLong(details));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 }
